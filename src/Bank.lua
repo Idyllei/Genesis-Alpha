@@ -120,7 +120,7 @@ function Bank:setAccount(Player) -- BankAccount
   return _accounts[API.getPlayer(Player).Name];
 end
 
-function Bank:getAccount(Player) -- BankAccount
+function Bank.getAccount(Player) -- BankAccount
   print("DEBUG][local][Bank]|Start ",Bank.getAccount);
   if (not Player) then 
     error("[DEBUG][ERROR][Bank]::getAccount | Attempt to get account of non-existent player.",2);
@@ -132,7 +132,7 @@ function Bank:getAccount(Player) -- BankAccount
   return _accounts[API.getPlayer(Player).Name];
 end
 
-function Bank:sendTransaction(From, To, Amount) -- Boolean (false) for failure, 1: DenyTxOut, 0: Able to send Tx to IOU Creditor, -1: To is not in IOUList,string:not enough money to send amount amt, table: Details of Tx.
+function Bank.sendTransaction(From, To, Amount) -- Boolean (false) for failure, 1: DenyTxOut, 0: Able to send Tx to IOU Creditor, -1: To is not in IOUList,string:not enough money to send amount amt, table: Details of Tx.
   print("[DEBUG][Bank]::sendTransaction()|Start ",Bank.sendTransaction);
   if (not (From and To and Amount)) then 
     error("[DEBUG][ERROR][Bank]::sendTransaction | Attempt to call `sendTransaction' with invalid parameters (nil param).",2);
@@ -170,7 +170,7 @@ function Bank:sendTransaction(From, To, Amount) -- Boolean (false) for failure, 
   return {From = From.Owner, To = To.Owner, Amount = Amount};
 end
 
-function Bank:sendAnonTransaction(From, To, Amount) -- Boolean (false) for failure, 1: DenyTxOut, 0: Able to send Tx to IOU Creditor, -1: To is not in IOUList, table: Details of Tx.
+function Bank.sendAnonTransaction(From, To, Amount) -- Boolean (false) for failure, 1: DenyTxOut, 0: Able to send Tx to IOU Creditor, -1: To is not in IOUList, table: Details of Tx.
   print("[DEBUG][Bank]::sendAnonTransaction()|Start ",Bank.sendAnonTransaction);
   if (not (From and To and Amount)) then 
     error("[DEBUG][ERROR][Bank]::sendAnonTransaction | Attempt to call `sendAnonTransaction' with invalid parameters (nil param).",2);
@@ -208,7 +208,7 @@ function Bank:sendAnonTransaction(From, To, Amount) -- Boolean (false) for failu
   return {From = "Anonymous", To = To.Owner, Amount = Amount};
 end
 
-function Bank:sendTransactionNoLogs(From, To, Amount) -- Boolean  (false) for failure, 1: DenyTxOut, 0: Able to send Tx to IOU Creditor, -1: To is not in IOUList, table: Details of Tx.
+function Bank.sendTransactionNoLogs(From, To, Amount) -- Boolean  (false) for failure, 1: DenyTxOut, 0: Able to send Tx to IOU Creditor, -1: To is not in IOUList, table: Details of Tx.
   print("[DEBUG][Bank]::sendTransactionNoLogs()|Start ",Bank.sendTransactionNoLogs);
   if (not (From and To and Amount)) then 
     error("[DEBUG][ERROR][Bank]::sendTransactionNoLogs | Attempt to call `sendTransactionNoLogs' with invalid parameters (nil param).",2);
@@ -246,7 +246,7 @@ function Bank:sendTransactionNoLogs(From, To, Amount) -- Boolean  (false) for fa
   return {From = "Anonymous", To = "******", Amount = Amount};
 end
 
-function Bank:hasIOUInQueue(Player) -- Boolean, has IOUs
+function Bank.hasIOUInQueue(Player) -- Boolean, has IOUs
   print("[DEBUG][Bank]::hasIOUInQueue()|Start ",Bank.hasIOUInQueue);
   if (not Player) then 
     error("[DEBUG][ERROR][Bank]::hasIOUInQueue | Attempt to call `hasIOUInQueue' with invalid parameters (nil param).",2);
@@ -257,7 +257,7 @@ function Bank:hasIOUInQueue(Player) -- Boolean, has IOUs
   return #Bank.getAccount(Player).IOUList > 0;
 end
 
-function Bank:setIOU(Debtor, Creditor, Amount) -- Boolean, success 
+function Bank.setIOU(Debtor, Creditor, Amount) -- Boolean, success 
   print("[DEBUG][Bank]::setIOU|Start ",Bank.setIOU);
   if (not (Debtor and Creditor and Amount)) then 
     error("[DEBUG][ERROR][Bank]::setIOU | Attempt to call `setIOU' with invalid parameters (nil param).",2);
@@ -270,7 +270,7 @@ function Bank:setIOU(Debtor, Creditor, Amount) -- Boolean, success
   return true;
 end
 
-function Bank:isInIOUList(Debtor, PotentialCreditor) -- Boolean, is PotentialCreditor in Debtor's IOUList?
+function Bank.isInIOUList(Debtor, PotentialCreditor) -- Boolean, is PotentialCreditor in Debtor's IOUList?
   print("[DEBUG][Bank]::isInIOUList()|Start ",Bank.isInIOUList);
   if (not (Debtor and PotentialCreditor)) then 
     error("[DEBUG][ERROR][Bank]::isInIOUList | Attempt to call `isInIOUList' with invalid parameters (nil param).",2);
@@ -281,7 +281,7 @@ function Bank:isInIOUList(Debtor, PotentialCreditor) -- Boolean, is PotentialCre
   return not Bank.getAccount(Debtor).IOUList[API.getPlayer(PotentialCreditor).Name];
 end
 
-function Bank:confirmIOUPaid(Debtor, Creditor, Amount) -- Boolean, IOU to Creditor of amount Amount has been paid by Debtor;
+function Bank.confirmIOUPaid(Debtor, Creditor, Amount) -- Boolean, IOU to Creditor of amount Amount has been paid by Debtor;
   print("[DEBUG][Bank]::confirmIOUPaid()|Start ",Bank.confirmIOUPaid);
   if (not (Debtor and Creditor and Amount)) then 
     error("[DEBUG][ERROR][Bank]::confirmIOUPaid | Attempt to call `confirmIOUPaid' with invalid parameters (nil param).",2);
@@ -298,7 +298,7 @@ function Bank:confirmIOUPaid(Debtor, Creditor, Amount) -- Boolean, IOU to Credit
   return false;
 end
 
-function Bank:removeIOU(Debtor, Creditor) -- Boolean, IOU to Creditor in Debtor's IOUList has been removed;
+function Bank.removeIOU(Debtor, Creditor) -- Boolean, IOU to Creditor in Debtor's IOUList has been removed;
   print("[DEBUG][Bank]::removeIOU()|Start ",Bank.removeIOU);
   if (not (Debtor and Creditor)) then 
     error("[DEBUG][ERROR][Bank]::removeIOU | Attempt to call `removeIOU' with invalid parameter (nil param).",2);
@@ -315,7 +315,7 @@ function Bank:removeIOU(Debtor, Creditor) -- Boolean, IOU to Creditor in Debtor'
   return false;
 end
 
-function Bank:refreshJointBalance(Player) -- Boolean, JointBalance has been refreshed;
+function Bank.refreshJointBalance(Player) -- Boolean, JointBalance has been refreshed;
   print("[DEBUG][Bank]::refreshJointBalance()|Start ",Bank.refreshJoinBalance);
   if (not Player) then 
     error("[DEBUG][ERROR][Bank]::refreshJointBalance | Attempt to call `refreshJointBalance' with invalid parameters (nil param).",2);
@@ -332,7 +332,7 @@ function Bank:refreshJointBalance(Player) -- Boolean, JointBalance has been refr
   return true;
 end
 
-function Bank:disallowOutgoingTx(Player) -- Outgoing Tx's have been disabled;
+function Bank.disallowOutgoingTx(Player) -- Outgoing Tx's have been disabled;
   print("[DEBUG][Bank]::dissallowOutgoingTx()|Start ",Bank.dissallowOutgoingTx);
   if (not Player) then 
     error("[DEBUG][ERROR][Bank]::disallowOutgoingTx | Attempt to call `disallowOutgoingTx' with invalid parameters (nil param)",2);
@@ -346,7 +346,7 @@ function Bank:disallowOutgoingTx(Player) -- Outgoing Tx's have been disabled;
   return true;
 end
 
-function Bank:lockAccount(Player, Ticks, Reason) -- Boolean, EndTime; Success, Time that lockout ends [tick() + Ticks]
+function Bank.lockAccount(Player, Ticks, Reason) -- Boolean, EndTime; Success, Time that lockout ends [tick() + Ticks]
   print("[DEBUG][Bank]::lockAccount()|Start ",Bank.lockAccount);
   if (not Player) then 
     error("[DEBUG][ERROR][Bank]::lockAccount | Attempt to call `lockAccount' with invalid parameters (nil param).",2);
@@ -361,7 +361,7 @@ function Bank:lockAccount(Player, Ticks, Reason) -- Boolean, EndTime; Success, T
   return true, tick() + (Ticks or 7200);
 end
 
-function Bank:unlockAccount(Player) -- Boolean, account of Player has been unlocked;
+function Bank.unlockAccount(Player) -- Boolean, account of Player has been unlocked;
   print("[DEBUG][Bank]::unlockAccount()|Start ",Bank.unlockAccount);
   if (not Player) then 
     error("[DEBUG][ERROR][Bank]::unlockAccount | Attempt to call `unlockAccount' with invalid parameters (nil param).",2);

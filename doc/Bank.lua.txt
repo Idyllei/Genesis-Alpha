@@ -1,0 +1,144 @@
+File: Bank.lua
+
+Copyright Spencer Tupis, branefreez 2014-2015
+
+    What is "Bank.lua"? 
+
+    "Bank.lua" is a Lua module for the "Genesis" MMORPG. This module emulates a 
+real-world banking system and was inspired by Bitcoin. 
+
+How to Use:
+
+SETUP:
+    To set up Bank.lua, simply put the fullowing at the top of your script:
+    >  require("Bank.lua").setup();
+    This will add to your script's local environment all of the methods in the Bank
+    API inside of the table `bank'. the accounts can be accessed directly (which is
+    highly recommended against) by using the table `accounts'.
+
+Included Functions:
+
+    bank:setNPCAccount()
+    bank:setAccount(Player)
+    bank.getAccount(Player)
+    bank.sendTransaction(From,To,Amount)
+    bank.sendAnonTransaction(From,To,Amount)
+    bank.sendTransactionNoLogs(From,To,Amount)
+    bank.hasIOUInQueue(Player)
+    bank.setIOU(Debtor,Creditor,Amount)
+    bank.isInIOUList(Debtor,PotentialCreditor)
+    bank.confirmIOUPaid(Debtor,Creditor,Amount)
+    bank.removeIOU(Debtor,Creditor)
+    bank.refreshJointBalance(Player)
+    bank.disallowOutgoingTx(Player)
+    bank.lockAccount(Player,Time,Reason)
+    bank.unlockAccount(Player)
+    ==========================
+
+    bank:setNPCAccount()
+    
+    In order to work as expected, this method MUST be used with the colon.
+    This method is NOT designed to be used directly, but instead by other "Genesis" 
+    code.
+
+    Sets the NPC account that is shared between ALL NPCs.
+    --------
+    bank:setAccount(Player)
+
+    In order to work as expected, this method MUST be used with the colon.
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Sets the account of specified `Player' and returns the new account.
+    --------
+    bank.getAccount(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Gets the account of specified `Player' and returns the result.
+    --------
+    bank.sendTransaction(From,To,Amount)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Sends the amount of money `Amount' from account of `From' to the account of `To'.
+    --------
+    bank.sendAnonTransaction(From,To,Amount)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Sends the amount of money `Amount' from the account of `From' to the account of `To'
+    but replaces identifying infromation in the logs with "********".
+    --------
+    bank.sendTransactionNoLogs(From,To,Amount)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Sends the amount of money `Amount' from the account of `From' to the account of `To'
+    without logging anything.
+    --------
+    bank.hasIOUInQueue(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns true if the specified player `Player' has any IOUs in its account, false
+    otherwise.
+    --------
+    bank.setIOU(Debtor,Creditor,Amount)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Adds a value of "[`Creditor'.Name]=`Amount'" to the IOUList of the specified 
+    player `Player's account.
+    NOTE: "owed" automatically updates when being payed, even if it is not the complete 
+    amount.
+    --------
+    bank.isInIOUList(Debtor,PotentialCreditor)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns true if specified player `PotentialCreditor' is in the IOUList of player
+    `Debtor's account, otherwise false.
+    --------
+    bank.confirmIOUPaid(Debtor,Creditor,Amount)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns true if the specified player `Debtor' has paid player `Creditor' the specified
+    `Amount'.
+    --------
+    bank.removeIOU(Debtor,Creditor)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns true if the specified player `Creditor' has been removed from the account
+    of specified player `Debtor'.
+    --------
+    bank.refreshJointBalance(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns true if refreshing the joint balance of the account of specified player 
+    `Player' was successful.
+    --------
+    bank.disallowOutgoingTx(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns true if the account of the specified player `Player' is successfully dissallowed
+    from sending transactions.
+    --------
+    bank.lockAccount(Player,Time,Reason)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns two arguments. The first is a boolean indicating success of locking the
+    account of specified player `Player'. The second is the UNIX time that the lockout
+    will be removed if the first was true, otherwise nil.
+    --------
+    bank.unlockAccount(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns true if the removal of the lockout on the account of the specified player
+    `Player' was successful, otherwise false.
+    --------
