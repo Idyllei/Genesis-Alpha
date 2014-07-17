@@ -1,0 +1,207 @@
+File: API.lua
+
+Copyright Spencer Tupis, branefreez 2014-2015
+
+    What is API.lua?
+
+    API.lua is the API that ALL of the other "Genesis" APIs depend on and `require'.
+It contains core methods and functions that are used heavily throughout the entire 
+"Genesis" codebase.
+
+How to Use:
+
+SETUP:
+    To set up API.lua, simply put the following at the top of your script:
+    >  local API=require("API");
+    This will add all of the API methods to the table `API'.
+
+Included Functions:
+
+    API.getPlayer(Player)
+    API.getPlayers()
+    API.getPlayerHealth(Player...)
+    API.getPlayerStatus(Player...)
+    API.setPlayerStatus(Stat,Player...)
+    API.animateThrow(Speed,Start,Target) -- Pre-ALPHA; Abstract
+    API.animateSneak(Player) -- Pre-ALPHA; Abstract
+    API.animateDeath(Player)
+    API.loadPlayerSkin(Player)
+    API.op(Player)
+    API.deOp(Player)
+    API.kick(Player)
+    API.ban(Player)
+    API.getNPCHealth(Mouse) -- Pre-ALPHA; Abstract
+    API.getNPCMaxHealth(Mouse) -- Pre-ALPHA; Abstract
+    API.saveCheckpoint(Player) -- Per-ALPHA; Abstract
+    API.changeSetting(Setting,Value)
+    API.getPlayerPosition(Player)
+    API.setPlayerPosition(Player,Vector3)
+    API.setCameraNormal(Player)
+    API.setCameraFixed(Player)
+    API.setCameraFollow(Player)
+    API.SetCameraPosition(Player, Vector3)
+    API.getPlayerIds()
+    API.postToChat(Player,Msg) -- Pre-ALPHA; Abstract
+    ==========================
+
+    API.getPlayer(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns the corresponding player to the specified `Player' value, which can be a
+    string (the Players's name), the character (of the Player), or a number (the 
+    player's userId).
+    --------
+    API.getPlayers()
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns a table of all the players in the game.
+    Format: {[Player.Name]=Player,...};
+    --------
+    API.getPlayerHealth(Player...)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns a table of one or more players health in the order that they are passed.
+    --------
+    API.getPlayerStatus(Player...)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns a table of one or more players' status(es) in the order that they are passed.
+    --------
+    API.setPlayerStatus(status,Player...)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns true if setting the status of the player(s) was successful, false otherwise.
+    --------
+    API.animateThrow(Speed,Start,Target)
+
+    This method is NOT designed to be used directly, by the user.
+
+    This method is an Abstract pre-ALPHA method. It is not yet implemented.
+    --------
+    API.animateSneak(Player)
+
+    This method is NOT designed to be used directly, by the user.
+
+    This method is an Abstract pre-ALPHA method. It is not yet implemented.
+    --------
+    API.animateDeath(Player)
+
+    This methid IS designed to be used directly, by the user and other "Genesis" code.
+
+    Animates the death of the specified player `Player'.
+    Returns nil.
+    --------
+    API.loadPlayerSkin(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Loads the player's custom skin.
+    Returns true if the load is successful, false otherwise.
+    --------
+    API.op(Player)
+
+    This method IS desinged to be used directly, by the user and other "Genesis" code.
+
+    Adds specified player `Player' to the operators (administrator) list.
+    Returns true if Opping is successful, false otherwise.
+    --------
+    API.deOp(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Removes specified player `Player' from operators (administrators) list.
+    Returns true if deOpping is successful.
+    --------
+    API.kick(Player)
+
+    This method IS designed to be used directly, by the user and other "Gensis" code.
+
+    Kicks (forcefully disconnects) specified player `Player' from the game.
+    NOTE: Does NOT save their progress unless setting `gentleKick' is set to true or '1'
+    in the config file.
+    --------
+    API.ban(Player)
+
+    This method IS designed to be used direcltly, by the user and other "Genesis" code.
+
+    Adds the specified player `Player' to the listof banned players (API._GLobalSettings.banned)
+    and `kick()'s them.
+    Returns true if the ban is successful, false otherwise.
+    --------
+    API.getNPCHealth(Mouse)
+
+    This method IS NOT designed to be used directly.
+    This method is an Abstract pre-ALPHA method. It is not yet implemented.
+    --------
+    API.getNPCMaxHealth(Mouse)
+
+    This method IS NOT designed to be used directly.
+    This method is an Abstract pre-ALPHA method. It is not yet implemented.
+    --------
+    API.saveCheckpoint(Player)
+
+    This method IS NOT designed to be used directly.
+    This method is an Abstract pre-ALPHA method. It is not yet implemented.
+    --------
+    API.changeSetting(Setting,Value)
+
+    This method IS NOT designed to be worked with directly.
+    NOTE: It is only designed to be used in the "Genesis" codebase.
+
+    This method is an Abstract pre-ALPHA method. It is not yet implemented.
+    --------
+    API.getPlayerPosition(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns the position of the specified player `Player's HumanoidRootPart (Torso).
+    --------
+    API.setPlayerPosition(Player,Vector3)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+    Returns true if the positions of the specified player `Player's HumanoidRootPart
+    (torso) is set successfully, otherwise false.
+    --------
+    API.setCameraNormal(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Sets the specified player `Player's  camera's CameraMode to Enum.CameraMode.Normal
+    Returns true if the CameraMode is set to Enum.CameraMode.Normal successfully.
+    --------
+    API.setCameraFixed(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Sets the specified player `Player's  camera's CameraMode to Enum.CameraMode.Fixed
+    Returns true if the CameraMode is set to Enum.CameraMode.Fixed successfully.
+    --------
+    API.setCameraFollow(Player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Sets the specified player `Player's  camera's CameraMode to Enum.CameraMode.Follow
+    Returns true if the CameraMode is set to Enum.CameraMode.Follow successfully.
+    --------
+    API.setCameraPosition(Player, Vector3)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Sets the position of the camera of specified player `Player' to `Vector3'.
+    Returns true if setting the camera's position is successful.
+    --------
+    API.getPlayerIds()
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Returns a table of the userIds of all players currently in the game.
+    --------
+    API.postToChat(Player,Msg)
+
+    This method IS NOT designed to be used directly.
+    This method is an Abstract pre-ALPHA method. It is not yet implemented.

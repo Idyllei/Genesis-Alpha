@@ -10,7 +10,7 @@ real-world banking system and was inspired by Bitcoin.
 How to Use:
 
 SETUP:
-    To set up Bank.lua, simply put the fullowing at the top of your script:
+    To set up Bank.lua, simply put the following at the top of your script:
     >  require("Bank.lua").setup();
     This will add to your script's local environment all of the methods in the Bank
     API inside of the table `bank'. the accounts can be accessed directly (which is

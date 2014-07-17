@@ -5,12 +5,11 @@
 -- @class module
 
 local API={};
-local _GlobalSettings=require("GlobalSettings");
-local _PlayerSettings=require("PlayerSettings");
-local _Inventory=require("Inventory");
-
+API._PlayerSettings=require("PlayerSettings");
+API._Inventory=require("Inventory");
+API.config=require("genesis.config");
 function API.getPlayer(Player) --Player instance
-  return type(Player) == "string" and game.Players:FindFirstChild(Player) or NPCPlayer or type(Player) == "userdata" and (pcall( function() return Player.Character ~= nil end) and Player) or Player:GetPlayerFromCharacter();
+  return type(Player) == "string" and game.Players:FindFirstChild(Player) or type(Player) == "userdata" and (pcall( function() return Player.Character ~= nil end) and Player) or (type(Player)=="number") and (function() for _,v in pairs(game.Players:GetPlayers()) do if (v.userId==Player) then return v; end end end)() or Player:GetPlayerFromCharacter();
 end
 
 function API.getPlayers() --table; player instances
@@ -22,20 +21,16 @@ function API.getPlayers() --table; player instances
 end
 
 function API.getPlayerHealth(...) --table, players' health
-  if (#{...} > 1) then
+  if (#{...}) then
     local PlayersHealth = {};
     for i,v in pairs({...}) do
-      PlayersHealth[i] = type(v) == "string" and game.Players:FindFirstChild(v):FindFirstChild("Humanoid").Health or type(v) == "userdata" and v:FindFirstChild("Humanoid") ~= nil and v:FindFirstChild("Humanoid").Health or v.Character:FindFirstChild("Humanoid").Health;
+      PlayersHealth[i] = API.getPlayer(v)
     end;
     return PlayersHealth;
-  elseif (#{...} == 1) then
-    for i,v in pairs({...}) do
-      return type(v) == "string" and game.Players:FindFirstChild(v):FindFirstChild("Humanoid").Health or type(v) == "userdata" and v:FindFirstChild("Humanoid") ~= nil and v:FindFirstChild("Humanoid").Health or v.Character:FindFirstChild("Humanoid").Health;
-    end
   else
     error("[DEBUG][ERROR][API]::getPlayerHealth | Attempt to call `API:getPlayerHealth(...)' with no arguments\t", 3);
   end
-  return false;
+  return {};
 end
 
 function API.getPlayerStatus(...) --boolean, success
@@ -52,10 +47,10 @@ function API.getPlayerStatus(...) --boolean, success
   else
     error("[DEBUG][ERROR][API]::getPlayerStatus | Attempt to call `API:getPlayerStatus(...)' with no arguments\t", 3);
   end
-  return false;
+  return {};
 end
 
-function AP.setPlayerStatus(Stat, ...) --boolean, success
+function API.setPlayerStatus(Stat, ...) --boolean, success
   if (#{...} > 1) then
     for i,v in pairs({...}) do
       API.getPlayer(v).Character:FindFirstChild("Humanoid").Status.Value = Stat;
@@ -82,8 +77,9 @@ function API.animateDeath(Player) --player dies when Health <= 10, as MaxHealth 
   for _,v in pairs(Player.Character:GetChildren()) do
     pcall( function() v.Transparency = 1; end );
   end
-  if (_PlayerSettings[API.getPlayer(Player).Name].SaveInventory) then
-    _Inventory.SavePlayerInventory(API.getPlayer(Player).Name);
+  if (API._PlayerSettings[API.getPlayer(Player).Name].SaveInventory) then
+    --- TODO: Implement Inventory.savePlayerInventory(Player)
+    API._Inventory.savePlayerInventory(API.getPlayer(Player).Name);
   end
   API.getPlayer(Player).PlayerGui:FindFirstChild("RespawnButton").MouseButton1Click:connect(function()
     API.respawnPlayer(API.getPlayer(Player));
@@ -102,7 +98,7 @@ end
 
 function API.op(Player) --bool, success
   if (Player) then
-    table.insert(_GlobalSettings.ops, API.getPlayer(Player).Name);
+    table.insert(API._GlobalSettings.ops, API.getPlayer(Player).Name);
     return true;
   end
   error("[DEBUG][ERROR][API]::op|Attempt to call `op' with invalid paramters (nil param).",2);
@@ -119,7 +115,7 @@ function API.deOp(Player) --bool, success
         break;
       end
     end
-    table.remove(_GlobalSettings.ops, Pos);
+    table.remove(API._GlobalSettings.ops, Pos);
     return true;
   end
   error("[DEBUG][ARROR][API]::deOp|Attempt to call `deOp' with invalid parameters (nil param).",2);
@@ -130,6 +126,9 @@ function API.kick(Player) --`plr' is banned for 30 seconds
   if (Player) then
     local PlayerName = API:getPlayer(Player).Name;
     print("[DEBUG][API]::kick|Kicking player '"..API.getPlayer(Player).Name.."' from game.");
+    if (API.config.gentleKick==1 or not not API.config.gentleKick) then
+      API.saveCheckpoint(Player);
+    end
     API.getPlayer(PlayerName):Kick();
     coroutine.resume(coroutine.create(function()
       local now = tick();
@@ -152,7 +151,7 @@ function API.ban(Player) --bool, success
   if (Player) then
     print("[DEBUG][API]::ban|Kicking and banning player '"..API.getPlayer(Player).Name.."' from game.");
     API.getPlayer(Player):Kick();
-    table.insert(_GlobalSettings.banned, API.getPlayer(Player).Name);
+    table.insert(API._GlobalSettings.banned, API.getPlayer(Player).Name);
     return true;
   end
   error("[DEBUG][ERROR][API]::ban|Attempt to call `ban' with invalid parameters (nil param).",2);
@@ -187,7 +186,7 @@ function API:getNPEGear(Mouse)
 end
 --]]
 
-function API.saveCheckpoint() -- Will save to DataStore when in RBX_Dev
+function API.saveCheckpoint(Player) -- Will save to DataStore when in RBX_Dev
   print("[DEBUG][ALPHA][API]::saveCheckpoint|Still in ALPHA dev.");
 end
 
@@ -196,9 +195,9 @@ function API.changeSetting(Setting, Value) -- Boolean
     error("[DEBUG][ERROR][API]::changeSetting|Attempt to call `changeSetting' with invalid parameters (nil param).",2);
     return false;
   end
-  if ((type(Value) == type(_GlobalSettings[Setting])) or (_GlobalSettings[Setting] == nil)) then
+  if ((type(Value) == type(API._GlobalSettings[Setting])) or (_GlobalSettings[Setting] == nil)) then
     print("[DEBUG][API]::changeSetting Setting _GlobalSettings["..Setting.."] to `"..tostring(Value).."'.");
-    _GlobalSettings[Setting] = Value;
+    API._GlobalSettings[Setting] = Value;
     return true;
   end
   error("[DEBUG][ERROR][API]::changeSetting|Unspecified Error.",2);
@@ -212,9 +211,9 @@ function API.getPlayerPosition(Player) -- Vector3;
   error("[DEBUG][ERROR][API]::getPlayerPosition|Attempt to call `getPlayerPosition' with invalid parameters (nil param.)",2);
 end
 
-function API.setPlayerPosition(Player, Vec3Position) -- Boolean
-  if (Player and Vec3Position) then 
-    API.getPlayer(Player).Character:MoveTo(Vec3Position);
+function API.setPlayerPosition(Player, Vector3) -- Boolean
+  if (Player and Vector3) then 
+    API.getPlayer(Player).Character:MoveTo(Vector3);
     return true;
   end
   error("[DEBUG][ERROR][API]::setPlayerPosition|Attempt to call `setPlayerPosition' with invalid parameters (nil param).",2);
@@ -251,10 +250,10 @@ function API.setCameraFollow(Player) -- Boolean success
   error("[DEBUG][ERROR][API]::setCameraFollow|Attempt to call `setCameraFollow' with invalid parameters (nil param).",2);
 end
 
-function API.setCameraPosition(Player, Vec3) -- Boolean Success
-  if (Player and Vec3) then 
+function API.setCameraPosition(Player, Vector3) -- Boolean Success
+  if (Player and Vector3) then 
      local CSetPositionLocal = game:GetService("ReplicatedStorage"):FindFirstChild("CSetPositionLocal"):Clone();
-    CSetPositionLocal.Position.Value = Vec3;
+    CSetPositionLocal.Position.Value = Vector3;
    CSetPositionLocal.Parent = API.getPlayer(Player).Character;
     CSetPositionLocal.Disabled = false;
     return true;
