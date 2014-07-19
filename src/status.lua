@@ -41,10 +41,11 @@ function status.setup(player)
     create"BoolValue"{Name="forceStop"},
     create"BindableFunction"{Name="callback"}
   };
+  return nil;
 end
 
 function status.run(player)
-  player=Api.getPlayer(player);
+  player=API.getPlayer(player);
   if (not player) then
     error("");
     return;

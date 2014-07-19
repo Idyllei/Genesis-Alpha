@@ -1,0 +1,99 @@
+File: NPCPlayer.lua
+
+What is NPCPlayer.lua?
+
+     NPCPlayer.lua is the core of the NPC Players. They are designed to be an extension
+of the `Player' class. NPCPlayer is used heavily in "Genesis" code.
+
+SETUP:
+
+    To set up NPCPlayer for use in your code, put this at the top of your script:
+
+    >  local NPCPlayer,NPCPoints=unpack(require("NPCPlayer"));
+
+    This will load the NPCPlayer class and the points used to traverse their paths
+into your global _ENV.
+
+Included Functions (In `NPCPlayer'):
+
+    NPCPlayer:Talk((NPC)Player other)
+    NPCPlayer:StopTalking()
+    NPCPlayer:DistanceFromCharacter(Point)
+    NPCPlayer:LoadCharacterAppearance()
+    NPCPlayer:RemoveCharacter()
+    NPCPlayer:MoveToPosition(Point)
+    NPCPlayer:WalkToRandom()
+    NPCPlayer:Spawn(String townName)
+    NPCPlayer:new(Character char, String spawnTown)
+
+    towns.populateTownPoints()
+    ==========================
+
+Function Dump:
+
+    NPCPlayer:Talk(Player other)
+
+    This method IS NOT meant to be used by the user, only by "Genesis" code.
+
+    Causes the NPC to act as if it were talking to the specified player `other'.
+    Returns nil.
+    --------
+    NPCPlayer:StopTalking()
+
+    This method IS NOT meant to be used by the user, only by "Genesis" code.
+
+    Causes the NPC to cease actinging as if it were talking to its current target.
+    Returns nil.
+    --------
+    NPCPlayer:DistanceFromCharacter(Point point)
+
+    This method IS NOT meant to be used by the user, only by "Genesis" code.
+
+    Returns the magnitude of the ray from the NPC's Character's HumanoidRootPart
+    to specified `point'.
+    --------
+    NPCPlayer:LoadCharacterAppearance()
+
+    This method IS NOT meant to be used by the user, only by "Genesis" code.
+
+    Loads the NPC's character's skin.
+    Returns nil.
+    --------
+    NPCPlayer:MoveToPosition(Point point)
+
+    This method IS NOT meant to be used by the user, only by "Genesis" code.
+
+    Causes the NPC's Character to walk to specified `point'.
+    Returns nil.
+    --------
+    NPCPlayer:WalkToRandom()
+
+    This method IS NOT meant to be used by the user, only by "Genesis" code.
+
+    Causes the NPC's Character to walk to a randomly picked Point in its town's 
+    table.
+    Returns nil.
+    --------
+    NPCPlayer:Spawn(String townName)
+
+    This method IS NOT designed (meant) to be used by the user, only by "Genesis" 
+    code.
+
+    Spawns a new NPC in the town specified by `townName'.
+    Returns a newly instanciated NPCPlayer.
+    --------
+    NPCPlayer:new(Character char, String spawnTown)
+
+    This method IS NOT meant to be used by the user, only by "Genesis" code.
+    NOTE: IT IS HIGHLY RECOMMENDED THAT YOU DO NOT USE THIS DIRECTLY. IT IS DESIGNED
+    TO BE USED *ONLY* BY "Genesis" CODE.
+
+    Returns a new NPCPlayer Instance.
+    ========
+    towns.populateTownPoints()
+
+    This method IS NOT meant to be used by the user, only by "Genesis" code.
+    NOTE: IT IS HIGHLY RECOMMENDED THAT YOU DO NOT USE THIS DIRECTLY. IT IS DESIGNED
+    TO BE USED *ONLY* BY "Genesis" CODE.
+
+    Returns nil.

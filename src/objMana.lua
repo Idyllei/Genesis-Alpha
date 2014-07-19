@@ -26,7 +26,7 @@ local mt = {
       error("[DEBUG][ERROR][objMana]::__concat | Attempt to concatenate Object objMana with non-alphanumberic data type.",2);
       return "";
     end --endif
-    return tostring(self.baseMax)..other..tostring(self.absMax)..other..tostring(self.remaining)..other..tostring(self.experience.level)..other..tostring(self.experience.amt);
+    return tostring(self.baseMax)..tostring(self.absMax)..tostring(self.remaining)..tostring(self.experience.level)..tostring(self.experience.amt)..other;
   end, --endfunction __concat
   __unm=function(self)
     local newMana=self.new();
@@ -35,11 +35,12 @@ local mt = {
     newMana.remaining=0;
     newMana.experience.level=0;
     newMana.experience.amt=0;
+    setmetatable(self,{__mode="kv"}); -- Allow for garbage collection.
     return newMana;
   end, --endfunction __unm
   __add=function(self,other)
     local newMana = self.new();
-    if (getmetatable(other).__index._TYPE == getmetatable(self).__index._TYPE) then
+    if (getmetatable(other).__index.__CLASS == getmetatable(self).__index.__CLASS) then
       newMana.baseMax=self.baseMax+other.baseMax;
       newMana.absMax=self.absMax+other.absMax;
       newMana.remaining=self.remaining+other.remaining;
@@ -62,7 +63,7 @@ local mt = {
   end, --endfunction __add
   __sub=function(self,other)
     local newMana = self.new();
-    if (getmetatable(other).__index._TYPE == getmetatable(self).__index._TYPE) then
+    if (getmetatable(other).__index.__CLASS == getmetatable(self).__index.__CLASS) then
       newMana.baseMax=self.baseMax-other.baseMax;
       newMana.absMax=self.absMax-other.absMax;
       newMana.remaining=self.remaining-other.remaining;
@@ -85,7 +86,7 @@ local mt = {
   end, --endfunction __sub
   __mul=function(self,other)
     local newMana = self.new();
-    if (getmetatable(other).__index._TYPE == getmetatable(self).__index._TYPE) then
+    if (getmetatable(other).__index.__CLASS == getmetatable(self).__index.__CLASS) then
       newMana.baseMax=self.baseMax*other.baseMax;
       newMana.absMax=self.absMax*other.absMax;
       newMana.remaining=self.remaining*other.remaining;
@@ -108,7 +109,7 @@ local mt = {
   end, --endfunction __mul
   __div=function(self,other)
     local newMana = self.new();
-    if (getmetatable(other).__index._TYPE == getmetatable(self).__index._TYPE) then
+    if (getmetatable(other).__index.__CLASS == getmetatable(self).__index.__CLASS) then
       newMana.baseMax=self.baseMax/other.baseMax;
       newMana.absMax=self.absMax/other.absMax;
       newMana.remaining=self.remaining/other.remaining;
@@ -131,7 +132,7 @@ local mt = {
   end, --ednfunction __div
   __mod=function(self,other)
     local newMana = self.new();
-    if (getmetatable(other).__index._TYPE == getmetatable(self).__index._TYPE) then
+    if (getmetatable(other).__index.__CLASS == getmetatable(self).__index.__CLASS) then
       newMana.baseMax=self.baseMax%other.baseMax;
       newMana.absMax=self.absMax%other.absMax;
       newMana.remaining=self.remaining%other.remaining;
@@ -154,7 +155,7 @@ local mt = {
   end, --endfunction __mod
   __pow=function(self,other)
     local newMana = self.new();
-    if (getmetatable(other).__index._TYPE == getmetatable(self).__index._TYPE) then
+    if (getmetatable(other).__index.__CLASS == getmetatable(self).__index.__CLASS) then
       newMana.baseMax=self.baseMax^other.baseMax;
       newMana.absMax=self.absMax^other.absMax;
       newMana.remaining=self.remaining^other.remaining;
@@ -184,13 +185,17 @@ local mt = {
     return str;
   end, --endfunction __tostring
   __eq=function(self,other)
-    return (self.baseMax==other.baseMax) and 
+    return (getmetatable(self).__index.__CLASS==getmetatable(other).__index.__CLASS) and 
+    (self.baseMax==other.baseMax) and 
     (self.absMax==other.absMax) and
     (self.remaining==other.remaining) and
     (self.experience.level==other.experience.level) and
     (self.experience.amt==other.experience.amt);
   end, --endfunction __eq
   __lt=function(self,other)
+    if (getmetatable(self).__index.__CLASS~=getmetatable(other).__index.__CLASS) then
+      return false;
+    end
     local percentage=0;
     if (self.baseMax<other.baseMax) then
       percentage=percentage+(1/5);
@@ -214,7 +219,7 @@ local mt = {
   end --endfunction __le
 };
 
-function mana:new(plr,bMx,aMx,r,xpl,xpa)
+function mana.new(plr,bMx,aMx,r,xpl,xpa)
   print("[DEBUG][objMana]::new|Creating new Object mana for player "..API.getPlayer(plr).Name..".");
   return plr~=nil and setmetatable({player=API.getPlayer(plr).Name,baseMax=bMx or 100,absMax=aMx or 1000,remaining=r or bMx,experience={level=xpl or 0,amt=xpa or 0}},mt) or die("[DEBUG][ERROR][objMana]::new|Attempt to call `new' with no player parameter.",2);
 end
@@ -224,6 +229,7 @@ function mana:addExperience(amt)
     error("[DEBUG][ERROR][objMana]::addExperience | `amt' is less than 0 (zero) or nil.",2);
   end --endif
   self.experience.amt = self.experience.amt + amt;
+  return nil;
 end --endfunction mana.addExperience
 
 function mana:calcXPForLvlUp()
@@ -236,6 +242,7 @@ function mana:recalculateLevel()
     self.recalculateLevel();
   end -- endif
   -- putting `self.recalculateLevel()' here would cause an infinite loop.
+  return nil;
 end --endfunction mana.recalculateLevel
 
 function mana:useMana(amt) -- amt is rounded up when lowering `mana.remaining' and rounded down when calclating xp gain.
@@ -257,6 +264,7 @@ function mana:replenishMana(amt)
   else
     self.remaining=self.remaining+amt;
   end --endif
+  return nil;
 end -- endfunction mana.replensishMana
 
 return mana;

@@ -25,6 +25,7 @@
     +RemoteEvent Clicked
   
 --]]
+local nullptr;
 require("nullptr").setup();
 require("boost").setup();
 local die;
@@ -35,7 +36,6 @@ local print=print;
 
 local Create=assert(LoadLibrary("RbxUtil")).Create;
 
-local nullptr=require("nullptr");
 
 local Shop = require("Shop");
 local tab=require("TabOp");
@@ -85,6 +85,7 @@ local NPCPlayer={
   StopTalking=function(self)
     print("[DEBUG][NPCPlayer]::StopTalking|Setting `IsTalking' to false.");
     self.IsTalking = false;
+    return;
   end,
   DistanceFromCharacter=function(self,point)
     return math.sqrt((self.Character.HumanoidRootPart.Position.x^2-point.x^2)+(self.Character.HumanoidRootPart.Position.y^2-point.y^2)+(self.Character.HumanoidRootPart.Position.z^2-point.z^2))
@@ -92,6 +93,7 @@ local NPCPlayer={
   LoadCharacterAppearance=function(self)
     (self.Character:FindFirstChild("Shirt") or Instance.new("Shirt",self.Character)).ShirtTemplate=self.ShirtTemplateURL;
     (self.Character:FindFirstChild("Pants") or Instance.new("Pants",self.Character)).ShirtTemplate=self.PantsTemplateURL;
+    return;
   end,
   RemoveCharacter=function(self)
     self=nil;
@@ -134,9 +136,11 @@ local NPCPlayer={
       end
     end
   end
+  return;
   end,
   WalkToRandom=function(self)
     self:MoveToPosition(tab.trand(towns[self.SpawnTown]));
+    return;
   end,
   Spawn = function(self, townName)
     local NPCChar=game:GetService("ServerStorage"):FindFirstChild("NPCChar"):Clone();
@@ -157,7 +161,7 @@ local NPCPlayer={
   end
 };
 
-function populateTownPoints() 
+function towns.populateTownPoints() 
   for v in game.Workspace.Towns:GetChildren() do
     if (v.Name:sub(1,4)=="town") then
       for p in v:GetChildren() do
@@ -167,6 +171,7 @@ function populateTownPoints()
       end
     end
   end
+  return nil;
 end
 
 

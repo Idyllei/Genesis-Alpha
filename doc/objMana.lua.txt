@@ -1,0 +1,179 @@
+File: objMana.lua
+
+What is objMana.lua?
+
+    objMana.lua is the core of the 'magic' element of "Genesis". It has yet to be 
+implemented.
+
+SETUP:
+
+    To make objMana available in your code, add this to the top of your scripts:
+
+    >  local objMana=require("objMana");
+
+    This adds the `mana' class to your global `_ENV'.
+
+Inlcuded Functions:
+
+    objMana:new(Player plr, Int bMax,Int aMax,Int r,Int xpl,Int xpa)
+    objMana:addExperience(Int amt)
+    objMana:calcXPForLvlUp()
+    objMana:recalculateLevel()
+    objMana:useMana(Int amt)
+    objMana:replenishMana(Int amt)
+    ==============================
+
+Function Dump:
+
+    objMana:new(Player plr, Int bMax,Int aMax,Int r,Int xpl,Int xpa)
+
+    This method IS NOT designed to be used by the user, ONLY other "Genesis" code.
+
+    Creates a new `mana' object with the specified parameters.
+    Returns a `mana' object.
+    --------
+    objMana:addExperiance(Int amt)
+
+    This method IS NOT designed to be used by the user, ONLY other "Genesis" code.
+    NOTE: It is recommended against using by the user, but is allowed.
+
+    Adds more experience to the `mana' object.
+    Returns nil.
+    --------
+    objMana:calcXPForLvlUp()
+
+    This method IS NOT designed to be used by the user, ONLY other "Genesis" code.
+
+    Calculates and
+    Returns the amount of XP for the next level to be reached.
+    --------
+    objMana:recalculateLevel()
+
+    This method IS NOT designed to be used by the user, ONLY other "Genesis" code.
+
+    Recalculates the level of the `mana' object, and sets the level according to the
+    amount of XP accumulated.
+    Returns nil.
+    --------
+    objMana:useMana(Int amt)
+
+    This method IS NOT designed to be used by the user, ONLY other "Genesis" code.
+    NOTE: It is recommended against using by the user, but is allowed.
+
+    Uses up the specified amount `amt' of the mana remaining.
+    Returns two values:
+    The mana remaining, and the amount of experience.
+    --------
+    objMana:replenishMana(Int amt)
+
+    This method IS NOT designed to be used by the user, ONLY other "Genesis" code.
+
+    Adds the sepcified `amt' of mana to the `mana' object.
+    Returns nil.
+    =========
+
+Mana Supported Operations:
+
+    Mana[N]:
+
+    Returns the N-th index of the Mana table.
+    --------
+    Mana[N]=V:
+
+    Errors; THIS OPERATION IS NOT SUPPORTED, USE THE PROVIDED METHODS TO MODIFY
+    THE MANA OBJECT.
+    --------
+    Mana(...)
+
+    Prints the variadic arguments with debuggin information.
+    Does NOTHING else.
+
+    NOTE: Calling Mana as a function IS NOT recommended.
+    --------
+    Mana..V:
+
+    If `type(V)=="string" or type(V)=="number"`:
+    Returns a string of Mana's values with the value of V appended to its end.
+    Else:
+    Errors.
+
+    NOTE: Concatenatig Mana IS NOT recommended.
+    --------
+    `-Mana`:
+
+    Does not act as expected. Instead returns a new Mana object with ALL values set to
+    `0`. The values for its maximum values cannot be changed, and so is useless.
+
+    NOTE: Using `unary -` on Mana IS NOT supported and should NOT be used.
+    --------
+    Mana + V:
+
+    Only supports the following operations:
+    `Mana+Mana`,
+    `Mana+Number`,
+    `Mana+Table`
+
+    If added to Mana: Returns a new Mana object with the value of the coresponding original
+    values added to each other.
+
+    If added to Number: Returns a new Mana object with the values of original Mana
+    object incremented by `Number`.
+
+    If added to Table, returns a new Mana object with the value of the coresponding indexes
+    values added to each other.
+
+    If none of the above: Errors.
+    --------
+    Mana - V:
+
+    Applies the inverse of `Mana + V` (`Mana + (-V)`).
+    Returns new mana object with these values.
+    --------
+    Mana * V:
+
+    Applies `Mana + V` V times.
+    Returns new mana object with these values.
+    --------
+    Mana / V:
+
+    Applies `Mana * (1/V)`.
+    Returns new mana object with these values.
+    --------
+    Mana % V:
+
+    Returns a new mana object with the values of the original Mana values mod V.
+    Subject to the same conditions as `Mana + V` and others to execute correctly.
+    --------
+    Mana ^ V:
+
+    Applies `Mana * V` V times.
+    Returns new mana object with these values.
+    --------
+    tostring(Mana):
+
+    Returns a *literal* string representation of the Mana object that can be used in
+    `loadstring'.
+    --------
+    Mana == V:
+
+    Only supports the follwing operation:
+
+    `Mana == Mana`
+
+    Returns true if the values of Mana are equal to the values of V, otherwise returns
+    false.
+    NOTE: If V's `__CLASS' value is not "$mana" then it will automatically fail
+    the equality test. (This is to assure that it is a Mana object).
+    --------
+    `Mana < V`:
+
+    Returns true if a majority of the values of Mana are less than the values of V, 
+    otherwise returns false.
+    NOTE: If V's `__CLASS' value is not "$mana" then it will automatically fail
+    the equality test. (This is to assure that it is a Mana object).
+    --------
+    `Mana <= V`:
+
+    Returns `(function() return (Mana < V) or (Mana == V); end)()`.
+    NOTE: If V's `__CLASS' value is not "$mana" then it will automatically fail
+    the equality test. (This is to assure that it is a Mana object).
