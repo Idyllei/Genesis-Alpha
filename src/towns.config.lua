@@ -1,4 +1,4 @@
-local CONIFIG={
+local CONFIG={
   volcano={
     MaxNPC=10,
     Extents=12,
@@ -58,7 +58,7 @@ local CONIFIG={
     }
   },
   chthonic={
-    MaxNPCs=30,
+    MaxNPC=30,
     Extents=10,
     Concentration=0.225,
     -- Few monsters, many rooms
@@ -77,7 +77,7 @@ local CONIFIG={
     }
   },
   palace={
-    MaxNPCs=80,
+    MaxNPC=80,
     Extents=20,
     Concentration=3.25,
     -- Large families
@@ -96,3 +96,5 @@ local CONIFIG={
     }
   }
 };
+
+return CONFIG;

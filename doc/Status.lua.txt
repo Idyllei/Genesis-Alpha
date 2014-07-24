@@ -1,0 +1,56 @@
+File: status.lua
+
+What is status.lua?
+
+    status.lua is the core of the Status class. It is used heavily in "Genesis" code.
+
+SETUP:
+
+    To use status.lua in your code, put this at the top of your *Local*Scripts:
+
+    >  local status=require("status");
+
+    This will put the "status.lua" library in your global `_ENV'
+
+Included Functions:
+
+    status.setup(Player player)
+    status.run(Player player)
+    status.stop(Player player)
+    status.setStatus(Player player, String s, Int len)
+    status.getStatus(Player player)
+    ===============================
+
+Function Dump:
+
+    status.setup(Player player)
+
+    This method IS designed to be used directly, by the user and other "Genesis" code.
+
+    Creates a new "Status" framework in the specified `player's Character's Humanoid.
+    Returns nil.
+    --------
+    status.run(Player player)
+
+    This method IS NOT designed to be used by the user, *ONLY* by "Genesis" code.
+
+    Runs the status of specified `player'.
+    --------
+    status.stop(Player player)
+
+    This method IS NOT designed to be used by the user, *ONLY* by "Genesis" code.
+
+    Ceases the running of the status(es) of the specified `player'.
+    Returns nil;
+    --------
+    status.setStatus(Player player,String s,Int len)
+
+    This method IS NOT designed to be used by the user, *ONLY* by "Genesis" code.
+
+    Sets the specifed `player's status based on the arguements supplied.
+    --------
+    status.getStatus(Player player)
+
+    This method IS NOT designed to be used by the user, *ONLY* by "Genesis" code.
+
+    Returns the status of specified `player'.
