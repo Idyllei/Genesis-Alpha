@@ -1,0 +1,40 @@
+File: boost.lua
+
+What is boost.lua?
+
+    boost.lua is a library designed to help people script in lua after learning 
+other programming languages, such as Perl, C++, and others to come.
+
+SETUP:
+
+    If you want to use boost.lua in your scripts, put this at the top of them:
+
+    > require("boost"):setup(); 
+
+    NOTE: the colon is needed.
+
+    This will add all of the boost.lua helper functions to the global `_ENV'.
+
+Included Functions:
+
+    boost_foreach(String var,Table tab,Function func)
+    boost_foreachiString vari,String varv,Table tab,Function func)
+    foreach(Table tab,Function f)
+    die(...)
+    eval(String c)
+    exec(String c)
+    join(Table expr,...)
+    length(String expr) -- PRE-ALPHA; Not yet implemented.
+    localtime()
+    log(String expr)
+    logb(String expr,Number base)
+    printf(String str,LuaRegExp frmt)
+    rand(Number n)
+    srand(Number n)
+    reverse(String/Table expr)
+
+Function Dump:
+
+    boost_foreach(String var,Table tab,Function func)
+
+    This Function IS designed to be used directly.

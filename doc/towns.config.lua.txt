@@ -1,0 +1,40 @@
+File: towns.config.lua
+
+What is towns.config.lua?
+
+    towns.config.lua is the configuration file that is used in the generation of the
+towns' population and shops.
+
+SETUP:
+
+    To use towns.config.lua in your scripts, put this at the top of them:
+
+    >  local config=require("towns.config");
+
+    This will add the `CONFIG' table from "towns.config" to your global `_ENV'.
+
+Included Functions:
+
+    *NONE*
+
+Function Dump:
+
+    *See "Included Functions"*
+
+Structure:
+
+    CONFIG -- Table containing ALL town's configurations.
+    +Town -- Table containing a single town's configuration.
+     +MaxNPC -- How many NPCs are allowed, maximum.
+     +Extents -- How large each house of the town is in x/y.
+     +Concentration -- A number between 0-3.
+     +Buildings -- A number of buildings in the town.
+     +SpawnDelta -- The pre-calculated SpawnDelta: 10/(Extents^2/(Buildings*Concentration))
+     +Bartering
+      +MagicDelta -- A number 0-1, how often Magic is in shops.
+      +FoodDelta -- A number 0-1, how often Food is in shops.
+      +MedicalDelta -- A number 0-1, how often Medical supplies are in shops.
+      +CharmsDelta -- A number 0-1, how often Charms are found in shops.
+      +BlackMagicDelta -- A number 0-1, how often Black Magic is found in shops, typically lower than MagicDelta.
+      +CompanionsDelta -- A number 0-1, how often Companions are found in shops.
+      +BlackMagicCharmsDelta -- A number 0-1, how often Black Magic Charms are found in shops, typically lower than CharmsDelta.

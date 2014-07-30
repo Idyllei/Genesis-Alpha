@@ -1,0 +1,116 @@
+File: MersenneTwister.lua
+
+What is MersenneTwister.lua?
+
+    MersenneTwister.lua is a Pure Lua implementation of the Mersenne Twister 
+Pseudo-Random Number Generator (PRNG). For information
+on how it works, visit the following resources:
+
+    http://en.wikipedia.org/wiki/Pseudorandom_number_generator
+      http://en.wikipedia.org/wiki/Mersenne_twister
+        http://en.wikipedia.org/wiki/Mersenne_prime
+
+PREREQUISITES:
+
+    Lua BitOp (not necessarry in Lua 5.2, but his was written in 5.1.
+    Lua TabOp (Also requires Lua BitOp)
+
+SETUP:
+
+    If you wish to use MersenneTwister.lua in your scripts (why wouldn't you?), put this
+at the top of them:
+
+    >  local rnd=require("MersenneTwister");
+
+    This adds the Mersenne Twister to your global `_ENV's `rnd' variable.
+
+Included Functions:
+
+    Exposed functions:
+        initalize_mt_generator(seed) - Seed the Mersenne Twister RNG.
+        extract_mt() - Get a number from the Mersenne Twister RNG.
+        seed_from_mt(seed) - Seed the ISAAC RNG, optionally seeding the Mersenne Twister RNG beforehand.
+        generate_isaac() - Force a reseed.
+        random(min, max) - Get a random number between min and max.
+
+    Non-Exposed Functions: 
+    
+    NOTE: IT IS HIGLY RECOMMENDED *AGAINST* USING THESE AS THEY COULD MAKE THE PRNG
+    LESS RELIABLE.
+
+    toBinary(a)
+    fromBinary(a)
+    mix(a,b,c,d,e,f,g,h)
+    isaac()
+    randinit(flag)
+    getRandom()
+    
+Function Dump:
+
+    Exposed Functions:
+
+        initialize_mt_generator(seed)
+
+        This method IS designed to be used directly, by the user and other "Genesis" code.
+
+        Initialized the PRNG with the specified seed `seed'.
+        Does not return.
+        --------
+        extract_mt()
+
+        This method IS designed to be used directly, by the user and other "Genesis" code.
+
+        Get a number from the PRNG.
+        Returns a number.
+        --------
+        seed_from_mt(seed)
+
+        This method IS designed to be used directly, by the user and other "Genesis" code.
+
+        Seeds the ISAAC RNG, optionally seeding the Mersenne Twister.
+        Does not return.
+        --------
+        generate_isaac()
+
+        This method IS designed to be used directly, by the user and other "Genesis" code.
+
+        Force a reseed.
+        Does not return.
+        --------
+        random(min, max)
+
+        This method IS designed to be used directly, by the user and other "Genesis" code.
+
+        Returns a random number, n, such that it satisfies the inequality: min < n < max
+        ========
+    Non-Exposed Functions:
+
+        NOTE: THESE FUNCTIONS ARE NOT SHOWN HERE BECAUSE IT IS NOT NEEDED TO USE
+        THEM IN ORDER TO USE THE PRNG. IT WILL REMOVE THE ABSTRACTION.
+
+Example Usage:
+
+    local rnd=require("MersenneTwister");
+    local tab=require("TabOp");
+    rnd.seed_from_mt(os.time()/(os.time()%math.pi));
+    local seeds={}; -- A holding space for future seeds.
+    for _=1,16,1 do -- Create the first set of 16 seeds.
+      seeds[#initial_seeds + 1] = rnd.extract_mt();
+    end
+    -- Re-calculate the 16 seeds 16 times.
+    for i=1,16 do
+      rnd.seed_from_mt((os.time()/(os.time()%math.pi))/(seeds[i]~=0 and seeds[i] or seeds[i]+1));
+      seeds[i]=rnd.extract_mt();
+    end
+    local function random(min,max) -- More secure version of `rnd.random(min,max)'
+      rnd.seed_from_mt(tab.trand(seeds)); -- Seed it with a "random" seed.
+      return rnd.random(min or 0,max or 1);
+    end
+
+    for _1=1,10,1 do
+      print("========New Iteration========")
+      for _2=1,10,1 do
+        print(random(1,10));
+      end
+      print("========End Iteration========");
+    end

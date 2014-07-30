@@ -1,0 +1,121 @@
+File: crypt.lua
+
+What is crypt.lua?
+
+    crypt.lua is a collection of cryptographic hashing functions in Pure Lua.
+
+PREREQUISITES:
+
+    noki.lua
+    utf8.lua
+    hex.lua
+
+    md5.lua
+    crc32.lua
+    sha1.lua
+    sha2.lua
+
+    Lua BitOp (Fastest)
+    Lua 5.2 bit32 Library (Slower, used if BitOp is not installed)
+    "bit.numberlua" (Slowest, used as last resort)
+
+    
+SETUP:
+
+    If you want to use crypt.lua in your scripts, then put this at the top of them:
+
+    >  local crypt=require("crypt");
+
+    This will put the crypt collection in your global `_ENV' in the `crypt' variable.
+
+Included Functions:
+
+    crypt.crc32.crc32_byte(byte [, crc]) --> rcrc
+    crypt.crc32.crc32_string(s, crc) --> bcrc
+    crypt.crc32.crc32(o, crc) --> bcrc
+    
+    crypt.md5.sumhexa(s)
+    crypt.md5.sum(s)
+
+    crypt.sha1.hash_as_hex(message) --> Hex String
+    crypt.sha1.hash_as_data(message) --> Returns raw bytes
+    crypt.sha1.hmac_as_hex(key, message) -- Hex String
+    crypt.sha1.hmac_as_data(key,message) --> Returns raw bytes.
+
+    crypt.sha2.sha224(message) --> Hash string
+    crypt.sha2.sha256(message) --> Hash String
+    crypt.sha2.new256() --> New sha256 object.
+
+ Function Dump:
+    crypt.crc32.crc32_byte(byte [, crc]) --> rcrc
+
+    This method IS designed to be used directly.
+
+    Returns a number (hash) in bytes.
+    --------
+    crypt.crc32.crc32_string(s, crc) --> bcrc
+
+    This method IS designed to be used directly.
+
+    Returns a string (hash).
+    --------
+    crypt.crc32.crc32(o, crc) --> bcrc
+    
+    This method IS designed to be used directly.
+
+    This invokes `crc32_byte` if `o` is a byte or `crc32_string` if `o`
+    is a string.
+    --------
+    crypt.md5.sumhexa(s)
+
+    This method IS designed to be used directly.
+
+    Returns a hex string (hash) of s.
+    --------
+    crypt.md5.sum(s)
+
+    This method IS designed to be used directly.
+
+    Returns A binary string (hash) of s.
+    --------
+    crypt.sha1.hash_as_hex(message) --> Hex String
+
+    This method IS designed to be used directly.
+
+    Returns a hex string (hash) of `message`
+    --------
+    crypt.sha1.hash_as_data(message) --> Returns raw bytes
+
+    This method IS designed to be used directly.
+
+    Returns raw bytes of hash of `message`
+    --------
+    crypt.sha1.hmac_as_hex(key, message) -- Hex String
+
+    This method IS designed to be used directly.
+
+    Returns a hex string (hash) of `message` hashed with `key`
+    --------
+    crypt.sha1.hmac_as_data(key,message) --> Returns raw bytes.
+
+    This method IS designed to be used directly.
+
+    Returns raw byte of hash of `message` hashed with `key`
+    --------
+    crypt.sha2.sha224(message) --> Hash string
+
+    This method IS designed to be used directly.
+
+    Returns a hex string (hash) of `message`
+    --------
+    crypt.sha2.sha256(message) --> Hash String
+
+    This method IS designed to be used directly.
+
+    Returns a hex string (hash) of `message`.
+    --------
+    crypt.sha2.new256() --> New sha256 object.
+
+    This method IS designed to be used directly.
+
+    Returns a new sha256 object.
