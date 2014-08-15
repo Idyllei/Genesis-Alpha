@@ -174,5 +174,6 @@ function towns.populateTownPoints()
   return nil;
 end
 
+local M = {NPCPlayer,towns};
 
-return {NPCPlayer,towns};
+return M;
