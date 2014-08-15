@@ -1,6 +1,6 @@
 wait = wait
 Spawn=Spawn
-math=math
+math=require "Math"
 collectgarbage=collectgarbage
 getmetatable,setmetatable,table=getmetatable,setmetatable,table
 print = print
@@ -109,3 +109,5 @@ class NPCPlayer
 	Shop:"" -- nil
 	IsTalking:false
 	TalkingTo:"" -- nil
+
+return NPCPlayer

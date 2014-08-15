@@ -12,18 +12,7 @@ enum = (names) ->
 	t
 
 
-E = {
-	stat: {
-		enum{
-			"error"
-			"speed"
-			"poison"
-			"fatigue"
-			"confusion"
-			"hallucinate"
-		}
-	}
-}
+E = {stat: enum{"error","speed","poison","fatigue","confusion","hallucinate"}}
 
 status = {}
 
@@ -32,7 +21,7 @@ status.setup = (player) ->
 	if not player
 		error"",2
 		false
-	(player.Character.Humanoid\findFirstChild "Status")\Destroy!
+	(player.Character.Humanoid\FindFirstChild "Status")\Destroy!
 	(create "Configuration") {
 		Parent: player.Character.Humanoid
 		Name: "Status"

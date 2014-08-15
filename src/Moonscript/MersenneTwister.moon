@@ -7,7 +7,7 @@
 
 -- If we are on Lua 5.2.x or 5.3.x, then use `bit32' library as it is a C-side library
 bit = bit32 or require "bit"
-import bxor,band,brshift,blshift from bit
+bxor,band,brshift,blshift = bit.bxor,bit.band,bit.brshift,bit.blshift
 bit = nil
 
 import insert,remove from table

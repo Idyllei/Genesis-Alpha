@@ -52,7 +52,7 @@ API.op = (player) =>
 API.deOp = (player) =>
 	if player
 		playerName = (@getPlayer player).Name
-		local pos
+		pos = nil
 		for i,v in pairs @getPlayers!
 			if v == playerName
 				pos = i
