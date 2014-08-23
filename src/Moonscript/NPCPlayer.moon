@@ -5,8 +5,6 @@ collectgarbage=collectgarbage
 getmetatable,setmetatable,table=getmetatable,setmetatable,table
 print = print
 
-Create=assert(LoadLibrary("RbxUtil")).Create
-
 Shop=require "Shop"
 tab = require "TabOp"
 
@@ -22,6 +20,17 @@ towns.populateTownPoints=->
 
 
 chatBubbleImages = {}
+
+create_=(assert LoadLibrary "RbxUtil").Create
+Create = (cName,properties) -> --// REPLACES THE `Create` FUNCTION PROVIDED THROUGH RbxUtil LIBRARY
+	-- cName obj = new cName(properties)
+	--// Create a new object of class `cName`
+	obj = Instance.new cName
+	--// Set all ofits properties in a loop
+	for i,v in properties
+		obj[i] = v
+	return obj
+
 
 class NPCPlayer
 	new: (char,spawnTown) =>
@@ -82,20 +91,21 @@ class NPCPlayer
 	Talk: (other) =>
 		if not other
 			return
+		-- Don't interrupt the conversation with the other player
 		if @IsTalking and (@TalkingTo\sub(1,3) ~= "NPC")
 			return
 		if (@Character.HumanoidRootPart.Position-other.Character.HumanoidRootPart.Position).magnitude < 10
 			@IsTalking=true
 			@TalkingTo=other
 		while @IsTalking
-			chatbubble= Create("billboardGui")({
+			chatbubble= Create "BillboardGui", {
 				Parent:@Character.Head,
 				Offset:Vector3.new math.random(0,.5),1.5,math.random(0,.5)
-				Create("Image")({
+				Create "Image",{
 					Image:tab.trand chatBubbleImages
-				})
-			})
-			wait math.random(7.5,10)
+				}
+			}
+			wait math.random 7.5,10
 			chatBubble\Destroy!
 			if (@Character.HumanoidRootPart.Position-other.Character.HumanoidRootPart.Position)>10
 				@IsTalking=false
@@ -105,7 +115,7 @@ class NPCPlayer
 	Character:"" -- nil
 	ShirtTemplateURL:""
 	PantsTemplateURL:""
-	SpawnTown:""
+	SpawnTown:"" -- // "volcano","void","aether","chthonic","palace"
 	Shop:"" -- nil
 	IsTalking:false
 	TalkingTo:"" -- nil
