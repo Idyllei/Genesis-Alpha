@@ -1,4 +1,5 @@
-CONFIG = 
+CONFIG = {
+	gentleKick: true
 	volcano: {
 		MaxNPC: 10
 		Extents:12
@@ -78,4 +79,4 @@ CONFIG =
 			BlackMagicCharmsDelta:.1
 		}
 	}
-	
+}
