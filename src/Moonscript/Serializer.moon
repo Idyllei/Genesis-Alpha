@@ -1,5 +1,16 @@
-from Math import INF, NEG_INF, NaN
-from type2 import *
+
+{:INF, :NEG_INF, :NaN} = require "Math"
+
+
+do
+	env = {}
+	for i,v in pairs getfenv 1
+		env[i]=v
+	for i,v in pairs require "type"
+		env[i]=v
+		setfenv 1,env
+-- end
+
 class Serializer
 	NAN: NaN
 	DEFAULT_CHUNK_SIZE: 32

@@ -8,11 +8,10 @@
 -- If we are on Lua 5.2.x or 5.3.x, then use `bit32' library as it is a C-side library
 bit = bit32 or require "bit"
 bxor,band,brshift,blshift = bit.bxor,bit.band,bit.brshift,bit.blshift
-bit = nil
 
-import insert,remove from table
+insert,remove=table.insert,table.remove
 
-import floor from math
+floor = math.floor
 
 toBinary = (a) ->
 	b = {}
@@ -207,4 +206,4 @@ class MersenneTwister
 	random: (min=0, max=2^32-1) =>
 		(@getRandom! % max) + min
 
-return _ENV or (getfenv 0)
+return {MersenneTwister:MersenneTwister,ISAAC:ISAAC}

@@ -1,7 +1,13 @@
 -- A*.lua
 math = require "Math"
-from type2 import is_a_vector3,is_a_cframe
-from API import getCharacter
+
+type2 = require "type"
+is_a_vector3,is_a_cframe = type.is_a_vector3,type.is_a_cframe
+type2 = nil
+
+API = require "API"
+getCharacter = API.getCharacter
+API = nil
 
 class Pathfinder
 	new: (startPath,endPoint,char_) =>

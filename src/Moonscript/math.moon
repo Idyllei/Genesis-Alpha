@@ -1,8 +1,12 @@
 -- Math.moon
 
-from complex import complexUnpack,imaginary,complex,conjugate
-from MersenneTwister import MersenneTwister,ISAAC
-m_ext = require "math_ext"
+complex = require "complex"
+complexUnpack,imaginary,complex,conjugate = complex.complexUnpack,complex.imaginary,complex.complex,complex.conjugate
+
+MT = require "MersenneTwister"
+MersenneTwister,ISAAC = MT.MersenneTwister,MT.ISAAC
+
+math = require "math_ext"
 
 class Math
 	INF: math.huge
@@ -11,7 +15,7 @@ class Math
 	PI: 3.1415926535898
 	E: 2.718281828
 	PHI: 1.618033988749894848204586834
-	mt = MerseneeTwister!
+	mt = MersenneTwister!
 	sum: (t) ->
 		-- Return a number value equal to the sum of all the elements
 		-- in supplied table `t`
@@ -218,7 +222,7 @@ class Math
 	mrandarray: (size) =>
 		{(@mrand 0,1) for _=1,size,1}
 	mrandvector2: (mnx,mxx,mny,mxy) =>
-		Vector2.new (@mrand mnx,mxx), (mny,mxy)
+		Vector2.new (@mrand mnx,mxx), (@mrand mny,mxy)
 	mrandvector3: (mnx,mxx,mny,mxy,mnz,mxz) =>
 		Vector3.new (@mrand mnx,mxx), (@mrand mny,mxy), (@mrand mnz,mxz)
 	mrandcframe: (mnx,mxx,mny,mxy,mnz,mxz,mnx2,mxx2,mny2,mxy2,mnz2,mxz2) =>
