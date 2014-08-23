@@ -1,3 +1,5 @@
+PLAYERS = game.Players
+
 API={
 	_Inventory: require "Inventory"
 	_PlayerSettings: require "PlayerSettings"
@@ -13,17 +15,33 @@ API.getPlayerHealth = (...) =>
 	{}
 
 API.getPlayerStatus = (...) =>
-	return {i,(@getPlayer v).Character.Humanoid.Status.Value for i,v in pairs {...}} if #{...} > 1
-	return (@getPlayer ...).Character.Humanoid.Status.Value if #{...} == 1
-	error "",2
-	{}
+	{i,(@getPlayer v).Character.Humanoid.Status.Value for i,v in pairs {...}} if #{...} > 1
+	{plr.Character.Humanoid.Status.Value for _,plr in @GetPlayers!} if #{...} == 1
+	error "[DEBUG][ERROR][API] Attempt to call API.getPlayerStatus too few arguments",2
+	
 
 API.setPlayerStatus = (stat, ...) =>
 	for i,v in pairs {...}
 		((@getPlayer v).Character\FindFirstChild "Humanoid").Status.Value = stat
-	return true if #{...} > 0
-	error "",2
+	true if #{...} > 0
+	error "[DEBUG][ERROR][API] Attempt to call API.setPlayerStatus with too few arguments",2
 	false
+
+API.getUserId = (plr) ->
+	if (plr.Parent == game.Players)
+		--// Is a Player instance
+		plr.userId
+	elseif (plr.HumanoidRootPart)
+		--// Character plr = new Model()
+		PLAYERS\GetPlayerFromCharacter plr
+	elseif ((type plr) == "string")
+		--// String plr;
+		(API.getPlayer plr).userId
+	elseif ((type plr) == "number")
+		--// int plr = (int)userId
+		plr
+	else
+		error "[DEBUG][ERROR][API] Unknown Error.",2
 
 API.animateDeath = (player) =>
 	for v in (@getPlayer player).Character\GetChildren!
@@ -31,27 +49,30 @@ API.animateDeath = (player) =>
 			v.Transparency = 1
 	if @_PlayerSettings[(@getPlayer player).Name].SaveInventory
 		@_Inventory.savePlayerInventory (@getPlayer player).Name
-	((@getPlayer player).playerGui\FindFirstChild "Respawnbutton").MouseButton1Click\connect ->
+	((@getPlayer player).playerGui\FindFirstChild "RespawnButton").MouseButton1Click\connect ->
 		@respawnPlayer @getPlayer player
 
 API.loadPlayerSkin = (player) =>
+	player = @getPlayer player
 	if player
-		((@getPlayer player).Character\FindfirstChild "Shirt").ShirtTemplate = "http://www.roblox.com/asset/?id=" .. (((game\GetService "DataStoreService")\GetGlobalDataStore!)\GetAsync (@getPlayer player).Name).."$shirtTemplate"
-		((@getPlayer player).Character\FindfirstChild "Pants").PantsTemplate = "http://www.roblox.com/asset/?id=".. (((game\GetService "DataStoreService")\GetGlobalDataStore!)\GetAsync (@getPlayer player).Name).."$pantsTemplate"
+		(player.Character\FindfirstChild "Shirt").ShirtTemplate = "http://www.roblox.com/asset/?id=" .. (((game\GetService "DataStoreService")\GetGlobalDataStore!)\GetAsync player.Name).."$shirtTemplate"
+		(player.Character\FindfirstChild "Pants").PantsTemplate = "http://www.roblox.com/asset/?id=".. (((game\GetService "DataStoreService")\GetGlobalDataStore!)\GetAsync player.Name).."$pantsTemplate"
 		true
-	error "",2
+	error "[DEBUg][ERROR][API] Attempt to call API.loadPlayerSkin with invalid argument(s)",2
 	false
 
 API.op = (player) =>
+	player = @getPlayer player
 	if player
-		table.insert @_GlobalSettings.ops, (@getPlayer player).Name
+		table.insert @_GlobalSettings.ops, player.Name
 		true
-	error "",2
+	error "[DEBUG][ERROR][API] Attempt to call op with invalid argument(s)",2
 	false
 
 API.deOp = (player) =>
+	player = @getPlayer player
 	if player
-		playerName = (@getPlayer player).Name
+		playerName = player.Name
 		pos = nil
 		for i,v in pairs @getPlayers!
 			if v == playerName
@@ -59,15 +80,16 @@ API.deOp = (player) =>
 				break
 		table.remove @_GlobalSettings.ops, pos
 		true
-	error "",2
+	error "[DEBUG][ERROR][API] Attempt to call deOp with invalid argumen(s)",2
 	false
 
 API.kick = (player) =>
+	player = @getPlayer player
 	if player
-		playerName = (@getPlayer player).Name
+		playerName = player.Name
 		if (@config.gentleKick == 1)
 			@saveCheckpoint @player
-		(@getPlayer player)\Kick!
+		player\Kick!
 		coroutine.resume coroutine.create ->
 			now = tick!
 			while tick! > (now + 30)
@@ -76,15 +98,16 @@ API.kick = (player) =>
 				if (@getPlayer p).Name == PlayerName
 					p\Kick!
 		true
-	error "",2
+	error "[DEBUG][ERROR][API] Attempt to call kick with invalid argument(s)",2
 	false
 
 API.ban = (player) =>
+	player = @getPlayer player
 	if player
-		(@getPlayer player)\Kick!
-		table.insert @_GlobalSettings.banned, (@getPlayer player).Name
+		player\Kick!
+		table.insert @_GlobalSettings.banned, player.Name
 		true
-	error "",2
+	error "[DEBUG][ERROR][API] Attempt to call ban with invalid argument(s)",2
 	false
 
 API.getNPCHealth = (mouse) ->
@@ -103,44 +126,49 @@ API.changeSetting = (setting,value) =>
 	if (((type Value) == (type @_GlobalSettings[setting])) or (@_GlobalSettings[setting] == nil))
 		@_GlobalSettings[setting] = value
 		true
-	error "",2
+	error "[DEBUG][ERROR][API] Attempt to call changeSetting with invalid argument(s)",2
 	false
 
 API.getPlayerPosition = (player) =>
+	player = @getPlayer player
 	if player
-		((@getPlayer player).Character\findFirstChild "HumanoidRootPart").Position
+		(player.Character\FindFirstChild "HumanoidRootPart").Position
 	error "",2
 	false
 
 API.setCameraNormal = (player) =>
+	player = @getPlayer player
 	LFPLocal = ((game\GetService "ReplicatedStorage")\FindFirstChild "LFPLocal")\Clone!
-	LFPLocal.Parent = (@getPlayer player).Character
+	LFPLocal.Parent = player.Character
 	LFPLocal.Disabled = false
 	return true if player
 	error "",2
 	false
 
 API.setCameraFixed = (player) =>
+	player = @getPlayer player
 	CFixedLocal = ((game\GetService "ReplicatedStorage")\FindFirstChild "CameraFixedLocal")\Clone!
-	CfixedLocal.Parent = (@getPlayer player).Character
+	CfixedLocal.Parent = player.Character
 	CFixedLocal.Disabled = false
 	return true if player
 	error "",2
 	false
 
 API.setCameraFollow = (player) =>
+	player = @getPlayer player
 	CFollowLocal = ((game\GetService "ReplicatedStorage")\FindFirstChild "CameraFollowLocal")\Clone!
-	CFollowLocal.Parent = (@getPlayer player).Character
+	CFollowLocal.Parent = player.Character
 	CFollowLocal.Disabled = false
 	return true if player
 	error "",2
 	false
 
 API.setCameraPosition = (player, vec3) =>
+	player = @getPlayer player
 	if player and vec3
 		CSetPosLocal = ((game\GetService "ReplicatedStorage")\FindFirstChild "CSetPosLocal")\Clone!
 		CSetPosLocal.Position.Value = vec3
-		CSetPosLocal.Parent = (@getPlayer player).Character
+		CSetPosLocal.Parent = player.Character
 		CSetPosLocal.Disabled = false
 		true
 	error "",2
@@ -150,4 +178,5 @@ API.getPlayerIds = ->
 	{v.userId for v in game.Players\GetPlayers!}
 
 API.postToChat = (player, msg) =>
+	player = @getPlayer player
 	print "[DEBUG][API] postToChat = (player,msg) Is still in ALPHA-dev."

@@ -1,5 +1,4 @@
 API = require "API"
-create = (assert LoadLibrary "RbxUtil").Create
 
 enum = (names) ->
 	__enumId=0
@@ -13,6 +12,16 @@ enum = (names) ->
 
 
 E = {stat: enum{"error","speed","poison","fatigue","confusion","hallucinate"}}
+
+create_=(assert LoadLibrary "RbxUtil").Create
+Create = (cName,properties) ->
+	-- cName obj = new cName(properties)
+	--// Create a new object of class `cName`
+	obj = Instance.new cName
+	--// Set all ofits properties in a loop
+	for i,v in properties
+		obj[i] = v
+	return obj
 
 status = {}
 

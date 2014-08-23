@@ -8,7 +8,6 @@ status = require "status"
 pathfinder = require "pathfinder"
 townConfig = require "townConfig"
 API = require "API"
-
 -- // Game Services
 S_RUN = game\GetService "RunService"
 S_DEBRIS = game\GetService "DebrisService"
@@ -16,6 +15,18 @@ S_SCRIPT_CONTEXT = game\GetService "ScriptContext"
 S_SCRIPT_DEBUGGER = game\GetService "ScriptDebugger"
 S_DATA_STORE = game\GetService "DataStoreService"
 PLAYERS = game.Players
+
+DS_PLAYER_NAME_TO_ID = S_DATA_STORE\GetDataStore "PLAYER_NAME_TO_ID"
+
+create_=(assert LoadLibrary "RbxUtil").Create
+Create = (cName,properties) ->
+	-- cName obj = new cName(properties)
+	--// Create a new object of class `cName`
+	obj = Instance.new cName
+	--// Set all ofits properties in a loop
+	for i,v in properties
+		obj[i] = v
+	return obj
 
 r3i = -> (...) -- (r3i v1.x,v1.y,v1.z,v2.x,v2.y,v2.z)
     Region3int16.new (Vector3int16.new select 1,...),(Vector3int16.new select 4,...)
@@ -60,6 +71,15 @@ main = ->
 -- //////////////////
 
 --    /////////////////
+--   //  (Id*)Name  //
+--  /////////////////
+
+PLAYERS.PlayerAdded\connect (plr) ->
+	-- Update the DataStore with the player's new stats
+	-- map<string,int> PLAYER_NAME_TO_ID[plr.Name]=plr.userId
+	DS_PLAYER_NAME_TO_ID\SetAsync plr.Name, plr.userId
+
+--    /////////////////
 --	 // FALL-DAMAGE //
 --  /////////////////
 
@@ -74,10 +94,11 @@ game.Players.PlayerAdded\connect (plr) ->
 --	//////////
 PLAYERS.PlayerAdded\connect (plr) ->
 	-- // if the player already has an account:
-	if acc = (S_DATA_STORE\GetDataStore "Bank")\GetAsync (API.getPlayer plr).Name
+	if acc = (S_DATA_STORE\GetDataStore "Bank")\GetAsync DS_PLAYER_NAME_TO_ID\GetAsync plr.Name
 		-- // Make sure to load it
-		accounts[(API.getPlayer plr).Name] = acc
+		accounts[DS_PLAYER_NAME_TO_ID\GetAsync plr.Name] = acc
 	else
+		--- TODO: Update bank.setAccount(Player plr) to use userId of plr
 		bank.setAccount plr
 
 --	   /////////////
@@ -123,12 +144,14 @@ PLAYERS.PlayerAdded\connect (plr) ->
 
 PLAYERS.PlayerAdded\connect (plr) ->
 	-- // Load the player's inventory so that we msay proceed
+	--- TODO: Update INVENTORY.loadInventory(string plrName) to use userId of player instead of Name
 	INVENTORY.loadInventory plr.Name
 	-- // iterate through each item and reduce its `nUses`
+	--- TODO: Update INVENTORY.getInventory(Player plr) to use userId instead of Name of plr
 	for v in (INVENTORY.getInventory plr).getItems!
 		-- // only change `nUses` if it is there, otherwise we will error
 		if v.nUses
-			v.nUses -= math.floor ((S_DATA_STORE\GetDataStore "Stats")\GetAsync plr.Name).Inventory.nUsesLess
+			v.nUses -= math.floor ((S_DATA_STORE\GetDataStore "Stats")\GetAsync API.getUserId plr).Inventory.nUsesLess
 
 --   ///////////////
 --  //// DEATH ////
@@ -179,14 +202,14 @@ PLAYERS.PlayerRemoving\connect (plr) ->
 		Inventory:{
 			-- // Reward the player for playing by giving more uses per-item
 			-- // nUses Subtractive Number (increases *slightly* per-visit)
-			nUsesLess: ((S_DATA_STORE\GetDataStore "Stats")\GetAsync plr.Name).Inventory.nUsesLess + .5
+			nUsesLess: ((S_DATA_STORE\GetDataStore "Stats")\GetAsync plr.Name).Inventory.nUsesLess + math.random .375,.75
 		}
 	}
 
 PLAYERS.PlayerAdded\connect (plr) ->
 	(S_DATA_STORE\GetdataStore "Plays")\UpdateAsync "Plays", (val)->
 		if (math.log val,10) == math.floor math.log val,10
-			S_DEBRIS\AddItem (Create"Message"{Text:"Thank you for the "..val+1.." visits!!! ~branefreez",Parent:Workspace}),5
+			S_DEBRIS\AddItem (Create "Message",{Text:"Thank you for the "..val+1.." visits!!! ~branefreez",Parent:Workspace}),5
 		val+1
 
 
