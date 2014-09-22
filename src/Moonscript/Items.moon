@@ -1,9 +1,53 @@
 -- Items.moon
 
-from sys import thread,pack -- coroutine.resume coroutine.create `func`, pack (opposite of unpack)
+import pack from sys -- pack (opposite of unpack)
 Math = require "Math"
 NotImplemented = require "NotImplemented"
 S_DATA_STORE = game\GetService "DataStoreService"
+ATTACKED_EVENT = game.ReplicatedStorage\FindFirstChild "AttackedEvent"
+PSEUDO_CHAR = Instance.new "Model"
+-- Torso
+with Instance.new "Part"
+	.Name = "HumanoidRootPart"
+	.Size = Vector3.new 2,2,1
+	.Parent = PSEUDO_CHAR
+-- LeftLeg
+with Instance.new "Part"
+	.Name = "LeftLeg"
+	.Size = Vector3.new 1,2,1
+	.Parent = PSEUDO_CHAR
+-- RightLeg
+with Instance.new "Part"
+	.Name = "RightLeg"
+	.Size = Vector3.new 1,2,1
+	.Parent = PSEUDO_CHAR
+-- LeftArm
+with Instance.new "Part"
+	.Name = "LeftArm"
+	.Size = Vector3.new 1,2,1
+	.Parent = PSEUDO_CHAR
+-- Right Arm
+with Instance.new "Part"
+	.Name - "RightArm"
+	.Size = Vector3.new 1,2,1
+	.Parent = PSEUDO_CHAR
+-- Head
+with Instance.new "Part"
+	.Name = "Head"
+	.Size = Vector3.new 2,2,2
+	.Parent = PSEUDO_CHAR
+-- Head.SpecialMesh
+with Instance.new "SpecialMesh"
+	.MeshType = "Head"
+	.Parent = PSEUDO_CHAR.Head
+
+NULL_PLAYER = {
+	Name: "NULL_PLAYER"
+	userId: -1
+	MembershipType: 0
+	AccountAge: 1e9 -- 1,000,000,000 (1 Thousand Million or 1 Billion)
+	Character: PSEUDO_CHAR
+}
 
 class Item
 	new: =>
@@ -20,11 +64,11 @@ class Item
 				@use!
 		}
 
-Items = {
-	Id:{
-		["<<<ROOT>>>"]= 0x4df8f86e536372ef7074 -- MøønScrïpt
-	}
-	Charms:{
+Items = 
+	Id:
+		["<<<ROOT>>>"]: 0x4df8f86e -- Møøn
+	
+	Charms:
 		Id:{
 			ERROR: 0
 			Scarab_Charm: 1
@@ -42,20 +86,25 @@ Items = {
 			Shen_Amulet: 13
 			Ieb_Charm: 14
 		}
-		class Scarab_Charm
+		class Scarab_Charm extends Item -- Allows the beholder to keep items after death
 			new: (plrName) =>
 				setmetatable {
 					Name: "Scarab_Charm"
 					Id: Items.Charms.Id["Scarab_Charm"]
 					Owner: API.getPlayer plrName
+					Used: false
 					callback: =>
-						(S_DATA_STORE\GetDataStore "Inventory")\SetAsync (@Owner.Name),API.GetInventory (@Owner.Name)
+						if not Used
+							@Used = true
+							@Owner.Character.Humanoid.Died\connect ->
+								@Used = false
+								(S_DATA_STORE\GetDataStore "Inventory")\SetAsync (@Owner.Name),API.GetInventory (@Owner.Name)
 					use: => @callback!
 				},{
 					__call: =>
 						@callback!
 				}
-		class Djed_Charm
+		class Djed_Charm extends Item -- Gives the owner resistance to fall damage
 			new: (plrName) =>
 				setmetatable {
 					Name: "Djed_Charm"
@@ -69,7 +118,7 @@ Items = {
 						print "[DEBUG][CHARMS]|Djed_Charm called with arguements:\t#{unpack {...}}"
 						return ...
 				}
-		class Isis_Curse_Charm
+		class Isis_Curse_Charm extends Item
 			new: (plrName) =>
 				setmetatable {
 					Name: "Isis_Curse_Charm"
@@ -77,9 +126,9 @@ Items = {
 					Owner: API.getPlayer plrName
 					callback: (player) =>
 						player = API.getPlayer player
-						if not not player
+						if player
 							with (script.Parent\FindFirstChild "Isis_Curse")\Clone!
-								.Parent = player.character.Humanoid
+								.Parent = player.Character.Humanoid
 								.Disabled = false
 					use: (player) =>
 						@callback player
@@ -88,14 +137,14 @@ Items = {
 						print "[DEBUG][CHARMS]|Isis_Curse_Charm called on player ".. (API.getPlayer player).Name
 						@use player
 				}
-		class Amethyst_Luck_Amulet
+		class Amethyst_Luck_Amulet extends Item -- Increases chances at high tier bounty
 			new: (plrName)=>
 				setmetatable {
 					Name: "Amethyst_Luck_Amulet"
 					Id: Items.Charms.Id["Amethyst_Luck_Amulet"]
 					Owner: API.getPlayer plrName
 					callback: =>
-						if not not @Owner
+						if @Owner
 							(S_DATA_STORE\GetDataStore "Bounty_Luck")\UpdateAsync @Owner.Name, (val) ->
 								val * (Math.random 1.25,1.625)
 							(S_DATA_STORE\GetDataStore "Bounty_Luck")\GetAsync @Owner.Name
@@ -106,14 +155,14 @@ Items = {
 						print "[DEBUG][CHARMS]|Amethyst_Luck_Amulet called on player ".. @Owner.Name
 						@use!
 				}
-		class Sun_Stone_Utere_Fexix_Luck_Charm
+		class Sun_Stone_Utere_Fexix_Luck_Charm extends Item
 			new: (plrName) =>
 				setmetatable {
 					Name: "Sun_Stone_Utere_Fexix_Luck_Charm"
 					Id: Items.Charms.Id["Sun_Stone_Utere_Fexix_Luck_Charm"]
 					Owner: API.getPlayer plrName
 					callback: =>
-						if not not @Owner
+						if @Owner
 							(S_DATA_STORE\GetDataStore "Bounty_Luck")\UpdateAsync @Owner.Name, (val) ->
 								val * (Math.random 1.5,1.875)
 							(S_DATA_STORE\GetDataStore "Bounty_Luck")\GetAsync @Owner.Name
@@ -124,14 +173,14 @@ Items = {
 						print "[DEBUG][CHARMS]|Sun_Stone_Utere_Fexix_Luck_Charm called on player ".. @Owner.Name
 						@use!
 				}
-		class Wedjat_Eye_Amulet -- Provides a health buff and higher health
+		class Wedjat_Eye_Amulet extends Item -- Provides a health buff and higher health
 			new: (plrName) =>
 				setmetatable {
 					Name: "Wedjat_Eye_Amulet"
 					Id: Items.Charms.Id["Wedjat_Eye_Amulet"]
 					Owner: API.getPlayer plrName
 					callback: =>
-						if not not @Owner
+						if @Owner
 							Owner.Character.Humanoid.MaxHealth *= 1.25
 							Owner.Character.Humanoid.Health = Owner.Character.Humanoid.MaxHealth
 					use: =>
@@ -141,17 +190,17 @@ Items = {
 						print "[DEBUG][CHARMS]|Wedjat_Eye_Amulet called on player ".. @Owner.Name
 						@use!
 				}
-		class Evil_Eye_Amulet
+		class Evil_Eye_Amulet extends Item -- Give attacker bad luck
 			new: (plrName) =>
 				setmetatable {
 					Name: "Evil_Eye_Amulet"
 					Id: Items.Charms.Id["Evil_Eye_Amulet"]
 					Owner: API.getPlayer plrName
 					callback: =>
-						if not not @Owner
+						if @Owner
 							thread ->
-								(game.ReplicatedStorage\FindFirstChild "AttackedEvent").OnServerEvent\connect (attacker,recipient,damage) ->
-									if not not recipient
+								(game.ReplicatedStorage\FindFirstChild "AttackedEvent").OnServerEvent\connect (attacker,recipient,damage,weaponType) ->
+									if recipient
 										attacker.Character.Humanoid\TakeDamage damage*.1 -- give them 10% of the damage they delt to us
 										(S_DATA_STORE\GetDataStore "Bounty_Luck")\UpdateAsync attacker.Name, (val) ->
 											val * (Math.random .7,.85)
@@ -160,10 +209,9 @@ Items = {
 						@callback!
 				},{
 					__call: =>
-						NotImplemented "Evil_Eye_Amulet", "!", ->
-							error "Not NotImplemented",2
+						@use!
 				}
-		class Lapis_Lazuli_Amulet
+		class Lapis_Lazuli_Amulet extends Item -- Brings *slight* luck to the user
 			new: (plrName) =>
 				setmetatable {
 					Name: "Lapis_Lazuli_Amulet"
@@ -172,8 +220,8 @@ Items = {
 					maxUses: 5
 					nUses: 0
 					callback: =>
-						if not not @Owner
-							(S_DATA_STORE\GetDataStore "Bounty_Luck")\UpdataAsync @Owner.Name, (val) ->
+						if @Owner
+							(S_DATA_STORE\GetDataStore "Bounty_Luck")\UpdateAsync @Owner.Name, (val) ->
 								val * (Math.random 1.2,1.51)
 							(S_DATA_STORE\GetDataStore "Bounty_Luck")\GetAsync @Owner.Name
 					use: =>
@@ -189,15 +237,24 @@ Items = {
 						print "[DEBUG][CHARMS]|Lapis_Lazuli_Amulet called on player ".. @Owner.Name
 						@use!
 				}
-		class Isis_Knot
+		class Isis_Knot extends Item -- Protects wearer from direct attacks (bare hand/type `0` tool)
 			new: (plrName) =>
 				setmetatable {
 					Name: "Isis_Knot"
 					Id: Items.Charms.Id["Isis_Knot"]
 					Owner: API.getPlayer plrName
 					callback: =>
-						NotImplemented "Isis_Knot","!",->
-							error "NotImplemented",2
+						(game.ReplicatedStorage\FindFirstChild "AttackedEvent").OnServerEvent\connect (attacker,recipient,damage,weaponType) ->
+							-- someone else (besides themself) attack the owner:
+							if (attacker ~= @Owner) and (recipient == @Owner)
+								if weaponType ~= 0
+									@Owner.Character\TakeDamage damage
+								else
+									-- do a very slight damage to opponent to show them who is boss >:3
+									ATTACKED_EVENT.InvokeServer NULL_PLAYER, attacker, 1e-9, -1
+									-- NULL_PLAYER is the default pseudo-player to use when the server is acting as a player
+									-- 1e-9 is the damage to do (almost none) to show the injury screen.
+									-- -1 is the weaponType to use to show that it is the server (versus the client) doing the damage here
 					use: =>
 						@callback!
 				},{
@@ -205,28 +262,39 @@ Items = {
 						@use!
 				}
 				thread ->
-					while ((INVENTORY.getInventory plrName).hasItem "Isis_Knot") and values = pack (game.ReplicatedStorage\FindFirstChild "AttackedEvent").OnServerEvent\wait!
+					values = pack (game.ReplicatedStorage\FindFirstChild "AttackedEvent").OnServerEvent\wait!
+					while ((INVENTORY.getInventory plrName).hasItem "Isis_Knot") and values
 						attacker,recipient,damage,type_ = unpack values
 						if recipient == API.getPlayer plrName
 							if type_ ~= "direct"
 								recipient.Humanoid\TakeDamage damage
 							else
 								print "[DEBUG][CHARMS]|Isis_Knot Blocked damage from direct attack on " .. plrName
-		class Plummet_Amulet
+						values = pack (game.ReplicatedStorage\FindFirstChild "AttackedEvent").OnServerEvent\wait!
+		class Plummet_Amulet extends Item -- Prevents SOME fall damage to owner
 			new: (plrName) =>
 				setmetatable {
 					Name: "Plummet_Amulet"
 					Id: Items.Charms.Id["Plummet_Amulet"]
 					Owner: API.getPlayer plrName
 					callback: =>
-						NotImplemented "Plummet_Amulet","!",->
-							error "NotImplemented",2
+						-- Clone script.Impact to the player's character
+						if @Owner.Character\FindFirstChild "Impact"
+							-- Allready exists
+							(@Owner.Character\FindFirstChild "Impact").Disabled = false
+						else
+							-- Does not exists yet
+							with (script\FindFirstChild "Impact")\Clone!
+								.Parent = @Owner.Character
+								.Disabled = false
 					use: => @callback!
+					unequip: =>
+						(@Owner.Character\FindFirstChild "Impact").Disabled = true
 				},{
 					__call: =>
 						@use!
 				}
-		class Sesen_Charm
+		class Sesen_Charm extends Item -- Saves the owner's inventory (up to 10 times)
 			new: (plrName) =>
 				setmetatable {
 					Name: "Sesen_Charm"
@@ -239,15 +307,22 @@ Items = {
 						@Owner\LoadCharacter!
 						-- Loading of the player's Inventory will be handled in the main script
 					use: =>
+						-- Auto-called on Humanoid.Death event
 						nUses += 1
 						@callback!
 						if @nUses >= @maxUses
 							@Destroy!
+					Destroy: =>
+						-- call Pseudo-Destroy on child elements
+						for v in self
+							v = nil
+						-- `Destroy` self
+						self = nil
 				},{
 					__call: =>
 						@use!
 				}
-		class Double_Plume_Feathers_Amulet
+		class Double_Plume_Feathers_Amulet extends Item -- Provides Owner 2x Jump Height
 			new: (plrName) =>
 				setmetatable {
 					Name: "Double_Plume_Feathers_Amulet"
@@ -262,19 +337,17 @@ Items = {
 					__call: =>
 						@use!
 				}
-				if not not API.getPlayer plrName
-					Create "BodyForce" {
-						force: (Vector3.new 0,192.6,0) * (GetMass (API.getPlayer plrName).Character)
-						Parent: (API.getPlayer plrName).Character.Humanoid.Torso
-					}
+				if API.getPlayer plrName
+					with Instance.new "BodyForce" 
+						.force = (Vector3.new 0,192.6,0) * (GetMass (API.getPlayer plrName).Character)
+						.Parent = (API.getPlayer plrName).Character.Humanoid.Torso
 					thread ->
 						game.player.PlayerAdded\connect (plr) ->
 							plr.CharacterAdded\connect (chr) ->
-								Create "BodyForce" {
-									force: (Vector3.new 0,192.6,0) * (GetMass chr)
-									Parent: chr.Character.Humanoid.Torso
-								}
-		class Shen_Amulet
+								with Instance.new "BodyForce"
+									force = (Vector3.new 0,192.6,0) * (GetMass chr)
+									Parent = chr.Character.Humanoid.Torso
+		class Shen_Amulet extends Item -- Gives 2.5x Health to @Owner
 			new: (plrName) =>
 				setmetatable {
 					Name: "Shen_Amulet"
@@ -299,7 +372,7 @@ Items = {
 								with chr
 									.MaxHealth *= 2.5
 									.Health = .MaxHealth
-		class Ieb_Charm
+		class Ieb_Charm extends Item -- Gives owner Health Regen Buff
 			new: (plrName) =>
 				setmetatable {
 					Name: "Ieb_Charm"
@@ -315,7 +388,7 @@ Items = {
 				}
 				thread ->
 					chr = API.getPlayer plrName
-					if not not chr
+					if chr
 						while chr and wait 1.25
 							chr.Humanoid.Health = Math.min chr.Humanoid.MaxHealth,(chr.Humanoid.Health + chr.Humanoid.Health * Math.random .1,.5525)
 				thread ->
@@ -326,7 +399,33 @@ Items = {
 									if not not chr
 										while chr and wait 1.25
 											chr.Humanoid.Health = Math.min chr.Humanoid.MaxHealth,(chr.Humanoid.Health + chr.Humanoid.Health * Math.random .1,.5525)
-		class Imenet_charm
-			
+		class Imenet_Charm extends Item -- Heals owner @ Dusk
+			new: (plrName) =>
+				setmetatable {
+					Name: "Imenet_Charm"
+					Id: Items.Charms.Id["Imenet_Charm"]
+					Owner: API.getPlayer plrName
+					callback: =>
+						-- Make sure that the Charm has an owner
+						if @Owner
+							-- Make a separate thread for the charm's Callback
+							Spawn ->
+								-- Dusk is @ 20:00 (8:00 PM)
+								while LIGHTING\GetMinutesAfterMidnight! < 1140
+									-- Wait 20 seconds before checking again
+									wait 20
+								-- wait 1/8 of a second between loops
+								while wait 0.125
+									-- Short-dot syntax for brievity
+									with @Owner.Character.Humanoid
+										-- Use a random lerp to calculate the halt to give
+										.Health = .Health + (.Health - .MaxHealth) * Math.abs (Math.random! - Math.random!)
+						else
+							warn "[Items][Imenet_Charm]|@Owker is nil, cannot call `callback` properly"
+					use: =>
+						@callback!
+				}, {
+					__call: =>
+						use!
+				}
 	}
-}

@@ -1,4 +1,10 @@
 CONFIG = 
+	-- A random spawn point every server
+	spawnPoint: with Instance.new "SpawnPoint"
+		.Position = Vector3.new unpack({}[math.random 1,3])
+		.Transparency = 1
+		.Anchored = true
+		.CanCollide = false
 	volcano: {
 		MaxNPC: 10
 		Extents:12

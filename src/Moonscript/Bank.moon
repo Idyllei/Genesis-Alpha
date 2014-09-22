@@ -8,15 +8,16 @@ Bank={}
 _accounts={}
 
 bapi= {
+	Bank: {}
 	setup: =>
 		setfenv(1,{
-			unpack(getfenv {})
-			bank:Bank
+			unpack getfenv {}
+			bank: @Bank
 			accounts: _accounts
 		})
 }
 
-bankAccountTemplate =
+bapi.Bank.bankAccountTemplate =
 	Owner: "\0"
 	OwnerId: 0
 	Balance: 0
@@ -35,8 +36,8 @@ bankAccountTemplate =
 	LockLogs: {}
 	IOUList: {}
 
-Bank.setNPCAccount = =>
-	_accounts["NPC"] = setmetatable(bankAccountTemplate, {
+bapi.Bank.setNPCAccount = =>
+	_accounts["NPC"] = setmetatable(@bankAccountTemplate, {
 		__index: bankAccountTemplate
 		__newIndex: (index,value) =>
 			if not rawget self,index
