@@ -104,24 +104,24 @@ S_SCRIPT_DEBUGGER = game\GetService "ScriptDebugger"
 S_DATA_STORE = game\GetService "DataStoreService"
 PLAYERS = game.Players
 
--- Event Maids:
--- PLAYER Events, use by the enging & the game
-PlayerMaids = {}
--- `BoundEvent` Events, used by the game
-CoreEventMaids = {}
-
-PLAYERS.PlayerAdded\connect (plr) ->
-	PlayerMaids[plr.Name] = {}
-
--- /* 
---  * Remove all of the connections (of the player) to 
---  * free up memory Minimizes the chance of potential 
---  * memory leaks
---  */
-PLAYERS.PlayerRemoving\connect (plr) ->
-	for i,v in pairs PlayerMaids[plr.Name]
-		-- del RBXScriptSignal
-		PlayerMaids[plr.Name][i] = nil
+-- Event Maids (used by the game):
+CoreMaids = {
+	PlayerAdded: EventMaid.makeMaid!
+	PlayerRemoving: EventMaid.makeMaid!
+	CharacterAdded: EventMaid.makeMaid!
+	Died: EventMaid.makeMaid!
+	WatchAdded: EventMaid.makeMaid!
+	WatchRemoved: EventMaid.makeMaid!
+	Resuming: EventMaid.makeMaid!
+	BreakpointAdded: EventMaid.makeMaid!
+	BreakpointRemoved: EventMaid.makeMaid!
+	EncounteredBreak: EventMaid.makeMaid!
+	Changed: EventMaid.makeMaid!
+	Error: EventMaid.makeMaid!
+	Custom: {
+		Attack: EventMaid.makeMaid!
+	}
+}
 
 log2 = (n) ->
 	_n = 2
@@ -234,7 +234,7 @@ main = ->
 --  * NOTE: `Impact` ignores fall damage if the player owns certain items
 --  * items in their inventory (thet prevent fall damage)
 --  */
-game.Players.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Impact"] = PLAYERS.PlayerAdded\connect (plr) ->
 			plr.CharacterAdded\connect (chr) ->
 				with script.Impact\Clone!
 					.Parent = chr.Humanoid
@@ -248,7 +248,7 @@ game.Players.PlayerAdded\connect (plr) ->
 --  * Sets the player's bank account when they join the game.
 --  * If they haven't played before, creates a new account for them.
 --  */
-PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Bank"] = PLAYERS.PlayerAdded\connect (plr) ->
 	-- // Shouldn't need API.getPlayer(Player) for `plr`, as it always will be
 	-- // if the player already has an account:
 	if acc = (S_DATA_STORE\GetDataStore "Bank")\GetAsync plr.Name
@@ -268,7 +268,7 @@ PLAYERS.PlayerAdded\connect (plr) ->
 --  * TODO: Make this a non-hacky method. Preferably on that uses global
 --  * variables.
 --  */
-PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Stamina"] = PLAYERS.PlayerAdded\connect (plr) ->
 	plr.CharacterAdded\connect (chr) ->
 		thread ->
 			nStamina = 100
@@ -318,7 +318,7 @@ PLAYERS.PlayerAdded\connect (plr) ->
 --  * a reward for playing the game at least once.
 --  */
 
-PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Inventory"] = PLAYERS.PlayerAdded\connect (plr) ->
 	-- // Load the player's inventory so that we msay proceed
 	plrInventory = INVENTORY.loadInventory plr.Name
 	-- // iterate through each item and reduce its `nUses`
@@ -337,9 +337,9 @@ PLAYERS.PlayerAdded\connect (plr) ->
 --  *
 --  * NOTE: Uses NevermoreEngine's `RawCharacter` module
 --  */
-PLAYERS.PlayerAdded\connect (plr) ->
-	plr.CharacterAdded\connect (chr) ->
-		chr.Humanoid.Died\connect ->
+CoreMaids["PlayerAdded"]["Death"] = PLAYERS.PlayerAdded\connect (plr) ->
+	CoreMaids["characterAdded"]["Death"] = plr.CharacterAdded\connect (chr) ->
+		CoreMaids["Died"]["Death"] = chr.Humanoid.Died\connect ->
 			-- // Save the player's inventory if they have a `Scarab_Charm`
 			if (INVENTORY.getInventory plr).hasItem "Scarab_Charm"
 				(S_DATA_STORE\GetDataStore "Inventory")\SetAsync plr.Name,INVENTORY.getInventory plr
@@ -370,7 +370,7 @@ PLAYERS.PlayerAdded\connect (plr) ->
 --  * time the player joins the game.
 --  */
 
-PLAYERS.PlayerRemoving\connect (plr) ->
+CoreMaids["PlayerRemoving"]["Save"] = PLAYERS.PlayerRemoving\connect (plr) ->
 	-- // Save the player's Bank Account for the next time they join the game
 	(S_DATA_STORE\GetDataStore "Bank")\SetAsync plr.Name,accounts[plr.Name]
 	-- // Save the player's inventory for the next time they join the game
@@ -395,12 +395,16 @@ PLAYERS.PlayerRemoving\connect (plr) ->
 		}
 	}
 
+--   //////////
+--  // LUCK //
+-- //////////
+
 -- /*
 --  * Rewards luck to players if they visit on a lucky number.
 --  * Creates 2 messages, one for ther player to see, and 
 --  * one for all players to see (5s after the local message)
 --  */
-PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Luck"] = PLAYERS.PlayerAdded\connect (plr) ->
 	(S_DATA_STORE\GetDataStore "Plays")\UpdateAsync "Plays", (nVal)->
 		-- Check to see if `nVal` is a power of `10`, which is a lucky #
 		-- in the game.
@@ -444,35 +448,34 @@ PLAYERS.PlayerAdded\connect (plr) ->
 		nVal+1
 
 
-
 --   ///////////////////////
 --  ///////DEBUGGING///////
 -- ///////////////////////
 
 -- // Logs are in order of least sever to most severe.
-S_SCRIPT_DEBUGGER.WatchAdded\connect (oWatch) ->
+CoreMaids["WatchAdded"]["Debugging"] = S_SCRIPT_DEBUGGER.WatchAdded\connect (oWatch) ->
 	Logger\logInfo "Watch Added", nil, oWatch\GetFullName!
 
-S_SCRIPT_DEBUGGER.WatchRemoved\connect (oWatch) ->
+CoreMaids["WatchRemoved"]["Debugging"] = S_SCRIPT_DEBUGGER.WatchRemoved\connect (oWatch) ->
 	Logger\logInfo "Watch Removed", nil, oWatch\GetFullName!
 
-S_SCRIPT_DEBUGGER.Resuming\connect ->
+CoreMaids["Resuming"]["Debugging"] = S_SCRIPT_DEBUGGER.Resuming\connect ->
 	Logger\logInfo "ScriptDebugger Resumed", nil, "MAIN"
 
-S_SCRIPT_DEBUGGER.BreakpointAdded\connect (oBreakpoint) ->
+CoreMaids["BreakpointAdded"]["Debugging"] = S_SCRIPT_DEBUGGER.BreakpointAdded\connect (oBreakpoint) ->
 	Logger\logDebug "Breakpoint Added", nil, oBreakpoint\GetFullName!
 
-S_SCRIPT_DEBUGGER.BreakpointRemoved\connect (oBreakpoint) ->
+CoreMaids["BreakpointRemoved"]["Debugging"] = S_SCRIPT_DEBUGGER.BreakpointRemoved\connect (oBreakpoint) ->
 	Logger\logDebug "Breakpoint Removed", nil, oBreakpoint\GetFullName!
 
-S_SCRIPT_DEBUGGER.EncounteredBreak\connect (line) ->
+CoreMaids["EncounteredBreak"]["Debugging"] = S_SCRIPT_DEBUGGER.EncounteredBreak\connect (line) ->
 	-- [$D:$H:$M:$S] SVRTY:[DEBUG] SRC:[line:Script:CurrentLine]
 	--  	$O
 	Logger\logDebug "Encountered Break", nil, "#{line}:#{S_SCRIPT_DEBUGGER.Script}:#{S_SCRIPT_DEBUGGER.CurrentLine}"
 
-S_SCRIPT_DEBUGGER.Changed\connect (sProperty) ->
+CoreMaids["Changed"]["Debugging"] = S_SCRIPT_DEBUGGER.Changed\connect (sProperty) ->
 	Logger\logDebug "Property `#{sProperty}` of ScriptDebugger Changed", nil, "game:GetService(\"ScriptDebugger\")"
 
-S_SCRIPT_CONTEXT.Error\connect (sMsg,sTrace,oOrigin) ->
+CoreMaids["Error"]["Debugging"] = S_SCRIPT_CONTEXT.Error\connect (sMsg,sTrace,oOrigin) ->
 	Logger\logError sMsg, nil, oOrigin\GetFullName!
 

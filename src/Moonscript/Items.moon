@@ -1,11 +1,20 @@
 -- Items.moon
 
-import pack from sys -- pack (opposite of unpack)
 Math = require "Math"
-NotImplemented = require "NotImplemented"
 S_DATA_STORE = game\GetService "DataStoreService"
 ATTACKED_EVENT = game.ReplicatedStorage\FindFirstChild "AttackedEvent"
 PSEUDO_CHAR = Instance.new "Model"
+
+pack = (...) ->
+	{...}
+
+GetMass = (oModel) ->
+	nMass = 0
+	for _,v in pairs oModel
+		if v\IsA "BasePart"
+			nMass += v\GetMass!
+	nMass
+
 -- Torso
 with Instance.new "Part"
 	.Name = "HumanoidRootPart"
@@ -110,8 +119,8 @@ Items =
 					Name: "Djed_Charm"
 					Id: Items.Charms.Id["Djed_Charm"]
 					Owner: API.getPlayer plrName
-					callback: =>
-						NotImplemented "callback","!", -> nil
+					callback: ->
+						nil
 					use: => @callback!
 				},{
 					__call: (...) =>
@@ -328,9 +337,8 @@ Items =
 					Name: "Double_Plume_Feathers_Amulet"
 					Id: Items.Charms.Id["Double_Plume_Feathers_Amulet"]
 					Owner: API.getPlayer plrName
-					callback: =>
-						NotImplemented "Double_Plume_Feathers_Amulet","!",->
-							error "NotImplemented",2
+					callback: ->
+						nil
 					use: =>
 						@callback!
 				},{
@@ -353,9 +361,8 @@ Items =
 					Name: "Shen_Amulet"
 					Id: Items.Charms.Id["Shen_Amulet"]
 					Owner: API.getPlayer plrName
-					callback: =>
-						NotImplemented "Shen_Amulet","!",->
-							error "NotImplemented",2
+					callback: ->
+						nil
 					use: =>
 						@callback!
 				},{
@@ -379,8 +386,7 @@ Items =
 					Id: Items.Charms.Id["Ieb_Charm"]
 					Owner: API.getPlayer plrName
 					callback: =>
-						NotImplemented "Ieb_Charm","!",->
-							error "NotImplemented",2
+						nil
 					use: => @callback!
 				},{
 					__call: =>
