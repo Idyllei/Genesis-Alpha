@@ -34,3 +34,9 @@ Icon
 # Files that might appear on external disk
 .Spotlight-V100
 .Trashes
+
+src/Moonscript/TypicTwister_Test.moon
+src/Moonscript/TypicTwister.moon
+src/Moonscript/TypicTwister_Test.lua
+src/Moonscript/TypicTwister.lua
+src/Moonscript/Items.lua

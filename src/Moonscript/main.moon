@@ -338,7 +338,7 @@ CoreMaids["PlayerAdded"]["Inventory"] = PLAYERS.PlayerAdded\connect (plr) ->
 --  * NOTE: Uses NevermoreEngine's `RawCharacter` module
 --  */
 CoreMaids["PlayerAdded"]["Death"] = PLAYERS.PlayerAdded\connect (plr) ->
-	CoreMaids["characterAdded"]["Death"] = plr.CharacterAdded\connect (chr) ->
+	CoreMaids["CharacterAdded"]["Death"] = plr.CharacterAdded\connect (chr) ->
 		CoreMaids["Died"]["Death"] = chr.Humanoid.Died\connect ->
 			-- // Save the player's inventory if they have a `Scarab_Charm`
 			if (INVENTORY.getInventory plr).hasItem "Scarab_Charm"
@@ -377,6 +377,7 @@ CoreMaids["PlayerRemoving"]["Save"] = PLAYERS.PlayerRemoving\connect (plr) ->
 	(S_DATA_STORE\GetDataStore "Inventory")\SetAsync plr.Name,INVENTORY.getInventory plr
 	-- // Save the player's POSITIVE stats for the next time they join the game
 	(S_DATA_STORE\GetDataStore "Stats")\SetAsync plr.Name,{
+		nPlays: ((S_DATA_STORE\GetDataStore "Stats")\GetAsync plr.Name).nPlays + 1
 		StandingPosition: plr.Character.Humanoid.Torso.Position -- Where they were standing
 		Humanoid:{
 			MaxHealth: plr.Character.Humanoid.MaxHealth
@@ -391,7 +392,8 @@ CoreMaids["PlayerRemoving"]["Save"] = PLAYERS.PlayerRemoving\connect (plr) ->
 		Inventory:{
 			-- // Reward the player for playing by giving more uses per-item
 			-- // nUses Subtractive Number (increases *slightly* per-visit)
-			nUsesLess: ((S_DATA_STORE\GetDataStore "Stats")\GetAsync plr.Name).Inventory.nUsesLess + .5
+			-- 
+			nUsesLess: ((S_DATA_STORE\GetDataStore "Stats")\GetAsync plr.Name).Inventory.nUsesLess + .5 + (math.floor 1.61833588985^(((S_DATA_STORE\GetDataStore "Stats")\GetAsync plr.Name).nPlays/1.6183358898)) - 1
 		}
 	}
 

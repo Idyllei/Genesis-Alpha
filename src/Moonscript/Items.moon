@@ -3,7 +3,8 @@
 Math = require "Math"
 S_DATA_STORE = game\GetService "DataStoreService"
 ATTACKED_EVENT = game.ReplicatedStorage\FindFirstChild "AttackedEvent"
-PSEUDO_CHAR = Instance.new "Model"
+PSEUDO_CHAR = with Instance.new "Model"
+	.Name = "NULL_PLAYER"
 
 pack = (...) ->
 	{...}
@@ -62,7 +63,7 @@ class Item
 	new: =>
 		setmetatable {
 			Name: ""
-			Id: Items.Id["<<<ROOT>>>"]
+			Id: 0x4df8f86e -- Møøn | Items.Id["<<<ROOT>>>"]
 			Owner: nil
 			callback: =>
 				return
@@ -74,12 +75,14 @@ class Item
 		}
 
 Items = 
+	Item: Item
 	Id:
 		["<<<ROOT>>>"]: 0x4df8f86e -- Møøn
+		["NONE"]      : 0 -- Used as placeholders in `NonCraftable` Items
 	
 	Charms:
-		Id:{
-			ERROR: 0
+		Id:
+			ERROR: -1
 			Scarab_Charm: 1
 			Djed_Charm: 2
 			Isis_Curse_Charm: 3
@@ -94,7 +97,24 @@ Items =
 			Double_Plume_Feathers_Amulet: 12
 			Shen_Amulet: 13
 			Ieb_Charm: 14
-		}
+			Imenet_Charm: 15
+			Ka_Charm: 16
+			Menhed_Charm: 17
+			Nebu_Charm: 18
+			Pet_Charm: 19
+			Ushabtis_Amulet: 20
+			Was_Amulet: 21
+			Menta_Rune: 22
+			Winged_Solar_Disk: 23
+			Amenta_Rune: 24
+			Maat_Rune: 25
+			Naos_Tablet: 26
+			Palm_Branch_Charm: 27
+			Sa_Amulet: 28
+			Sekhem_Rune: 29
+			Sema_Rune: 30
+
+
 		class Scarab_Charm extends Item -- Allows the beholder to keep items after death
 			new: (plrName) =>
 				setmetatable {
@@ -113,6 +133,7 @@ Items =
 					__call: =>
 						@callback!
 				}
+
 		class Djed_Charm extends Item -- Gives the owner resistance to fall damage
 			new: (plrName) =>
 				setmetatable {
@@ -124,9 +145,10 @@ Items =
 					use: => @callback!
 				},{
 					__call: (...) =>
-						print "[DEBUG][CHARMS]|Djed_Charm called with arguements:\t#{unpack {...}}"
+						LOG\logInfo "Djed_Charm called with arguements:\t#{unpack {...}}", nil, "Items"
 						return ...
 				}
+
 		class Isis_Curse_Charm extends Item
 			new: (plrName) =>
 				setmetatable {
@@ -143,9 +165,10 @@ Items =
 						@callback player
 				},{
 					__call: (player,...) =>
-						print "[DEBUG][CHARMS]|Isis_Curse_Charm called on player ".. (API.getPlayer player).Name
+						LOG\logInfo "Isis_Curse_Charm called on player #{(API.getPlayer player).Name}"
 						@use player
 				}
+
 		class Amethyst_Luck_Amulet extends Item -- Increases chances at high tier bounty
 			new: (plrName)=>
 				setmetatable {
@@ -161,9 +184,10 @@ Items =
 						@callback!
 				},{
 					__call: =>
-						print "[DEBUG][CHARMS]|Amethyst_Luck_Amulet called on player ".. @Owner.Name
+						LOG\logInfo "Amethyst_Luck_Amulet called on player #{@Owner.Name}", nil, "Items"
 						@use!
 				}
+
 		class Sun_Stone_Utere_Fexix_Luck_Charm extends Item
 			new: (plrName) =>
 				setmetatable {
@@ -179,9 +203,10 @@ Items =
 						@callback!
 				},{
 					__call: =>
-						print "[DEBUG][CHARMS]|Sun_Stone_Utere_Fexix_Luck_Charm called on player ".. @Owner.Name
+						LOG\logInfo "Sun_Stone_Utere_Fexix_Luck_Charm called on player #{@Owner.Name}", nil, "Items"
 						@use!
 				}
+
 		class Wedjat_Eye_Amulet extends Item -- Provides a health buff and higher health
 			new: (plrName) =>
 				setmetatable {
@@ -196,9 +221,10 @@ Items =
 						@callback!
 				},{
 					__call: =>
-						print "[DEBUG][CHARMS]|Wedjat_Eye_Amulet called on player ".. @Owner.Name
+						LOG\logInfo "Wedjat_Eye_Amulet called on player #{@Owner.Name}", nil, "Items"
 						@use!
 				}
+
 		class Evil_Eye_Amulet extends Item -- Give attacker bad luck
 			new: (plrName) =>
 				setmetatable {
@@ -220,6 +246,7 @@ Items =
 					__call: =>
 						@use!
 				}
+
 		class Lapis_Lazuli_Amulet extends Item -- Brings *slight* luck to the user
 			new: (plrName) =>
 				setmetatable {
@@ -243,9 +270,10 @@ Items =
 							@Destroy!
 				},{
 					__call: =>
-						print "[DEBUG][CHARMS]|Lapis_Lazuli_Amulet called on player ".. @Owner.Name
+						LOG\logInfo "Lapis_Lazuli_Amulet called on player #{@Owner.Name}", nil, "Items"
 						@use!
 				}
+
 		class Isis_Knot extends Item -- Protects wearer from direct attacks (bare hand/type `0` tool)
 			new: (plrName) =>
 				setmetatable {
@@ -278,8 +306,9 @@ Items =
 							if type_ ~= "direct"
 								recipient.Humanoid\TakeDamage damage
 							else
-								print "[DEBUG][CHARMS]|Isis_Knot Blocked damage from direct attack on " .. plrName
+								LOG\logInfo "Isis_Knot Blocked damage from direct attack on #{recipient.Name}", nil, "Item.NonCraftable.Isis_Knot"
 						values = pack (game.ReplicatedStorage\FindFirstChild "AttackedEvent").OnServerEvent\wait!
+
 		class Plummet_Amulet extends Item -- Prevents SOME fall damage to owner
 			new: (plrName) =>
 				setmetatable {
@@ -303,6 +332,7 @@ Items =
 					__call: =>
 						@use!
 				}
+
 		class Sesen_Charm extends Item -- Saves the owner's inventory (up to 10 times)
 			new: (plrName) =>
 				setmetatable {
@@ -331,6 +361,7 @@ Items =
 					__call: =>
 						@use!
 				}
+
 		class Double_Plume_Feathers_Amulet extends Item -- Provides Owner 2x Jump Height
 			new: (plrName) =>
 				setmetatable {
@@ -355,6 +386,7 @@ Items =
 								with Instance.new "BodyForce"
 									force = (Vector3.new 0,192.6,0) * (GetMass chr)
 									Parent = chr.Character.Humanoid.Torso
+
 		class Shen_Amulet extends Item -- Gives 2.5x Health to @Owner
 			new: (plrName) =>
 				setmetatable {
@@ -379,6 +411,7 @@ Items =
 								with chr
 									.MaxHealth *= 2.5
 									.Health = .MaxHealth
+
 		class Ieb_Charm extends Item -- Gives owner Health Regen Buff
 			new: (plrName) =>
 				setmetatable {
@@ -405,6 +438,7 @@ Items =
 									if not not chr
 										while chr and wait 1.25
 											chr.Humanoid.Health = Math.min chr.Humanoid.MaxHealth,(chr.Humanoid.Health + chr.Humanoid.Health * Math.random .1,.5525)
+
 		class Imenet_Charm extends Item -- Heals owner @ Dusk
 			new: (plrName) =>
 				setmetatable {
@@ -425,13 +459,57 @@ Items =
 									-- Short-dot syntax for brievity
 									with @Owner.Character.Humanoid
 										-- Use a random lerp to calculate the halt to give
-										.Health = .Health + (.Health - .MaxHealth) * Math.abs (Math.random! - Math.random!)
+										.Health = .Health + (.Health - .MaxHealth) * math.abs (math.random! - math.random!)
 						else
-							warn "[Items][Imenet_Charm]|@Owker is nil, cannot call `callback` properly"
+							LOG\logWarn "@Owner is nil, cannot call `callback` properly.",nil, "Item.NonCraftable.Imenet_Charm"
 					use: =>
 						@callback!
 				}, {
 					__call: =>
 						use!
 				}
+
+		class Ka_Charm extends Craftable -- Heals owner @ Dawn
+			new: (plrName) =>
+				super {
+					[1]:{ -- Top
+						[1]:"NONE", -- Top-Left
+						[2]:"Knowledge_Fragment", -- Top-Middle
+						[3]:"NONE" -- Top-Right
+					},
+					[2]:{ -- Middle
+						[1]:"Clay", -- Mid-Left
+						[2]:"Blank_Tablet", -- Center
+						[3]:"Clay" -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]:"Scribe_Set", -- Bottom-Left
+						[2]:"Golden_Ring", -- Bottom-Middle
+						[3]:"Ink_Vial" -- Bottom-Right
+					}
+				}
+				setmetatable {
+					Name: "Ka_Charm"
+					Id: Items.Charms.Id["Ka_Charm"]
+					Owner: API.getPlayer plrName
+					callback: =>
+						-- Make sure that the charm has an Owner
+						if @Owner
+							-- Make a separate thread for the charm's Callback
+							Spawn ->
+								-- Dawn is @ 06:00 (6:00 AM)
+								while LIGHTING\GetMinutesAfterMidnight! < 360
+									-- Wait 20 seconds before checking again
+									wait 20
+								-- wait 1/8 of a second between loops
+								while wait 0.125
+									-- Short-dot syntax for brievity
+										with @Owner.Character.Humanoid
+											-- Use a random Lerp to calculate the health to give
+											.Health = .Health + (.Health - .MaxHealth) * math.abs (math.random! - math.random!)
+						else
+							LOG\logWarn "@Owner is nil, cannot call `callback` properly.",nil, "Item.Craftable.Ka_Charm"
+				}
+		class Menhed_Charm extends Craftable
+
 	}
