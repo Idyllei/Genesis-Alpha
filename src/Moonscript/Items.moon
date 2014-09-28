@@ -61,8 +61,8 @@ NULL_PLAYER = {
 
 class Item
 	new: =>
-		setmetatable {
-			Name: ""
+		{
+			Name: "<<<ROOT>>>"
 			Id: 0x4df8f86e -- Møøn | Items.Id["<<<ROOT>>>"]
 			Owner: nil
 			callback: =>
@@ -73,15 +73,62 @@ class Item
 			__call: =>
 				@use!
 		}
+		@__ITEM
 
-Items = 
-	Item: Item
-	Id:
+-- Item.Craftable
+-- Craftable(Table Recipe, Table Properties, Table Metatable)
+class Craftable extends Item
+	new: (tRecipe,tProperties,tMT) =>
+		-- we don't have to set the metatable, yet...
+		@__ITEM: super!
+		-- Set the recipe
+		for _,v1 in ipairs tRecipe
+			if ((type v1) ~= "string") or (not Items.Id[v1])
+				@__ITEM.CraftingRecipe = {
+					[1]:{[1]: "ERROR",[2]: "ERROR",[3]: "ERROR"},
+					[2]:{[1]: "ERROR",[2]: "ERROR",[3]: "ERROR"},
+					[3]:{[1]: "ERROR",[2]: "ERROR",[3]: "ERROR"}
+				}
+		-- If it had an error, let it be, otherwise set it to what it 
+		-- should be
+		@__ITEM.CraftingRecipe or= tRecipe
+		-- Set the properties of the item
+		for kProp,vVal in pairs tProperties
+			pcall -> self[kProp] = vVal
+		-- Now we can set the metatable of the item.
+		setmetatable @__ITEM, tMT
+	getCraftingRecipe: =>
+		return CraftingRecipe
+
+-- Item.NonCraftable
+-- NonCraftable(Table Properties, Table Metatable)
+class NonCraftable extends Item
+	new: (tProperties,tMT) =>
+		-- We don't have to set the metatable, yet...
+		@__ITEM = super!
+		-- Since it has no recipe, set all components to `NONE`
+		@__ITEM.CraftingRecipe = {
+			[1]:{[1]:"NONE",[2]:"NONE",[3]:"NONE"},
+			[2]:{[1]:"NONE",[2]:"NONE",[3]:"NONE"},
+			[3]:{[1]:"NONE",[2]:"NONE",[3]:"NONE"}
+		}
+		-- Set the item's properties.
+		for kProp,vVal in pairs tProperties
+			pcall -> @__ITEM[kProp] = vVal
+		-- Now we can set the metatable of the item. (And return it)
+		setmetatable @__ITEM, tMT
+
+Items = {
+
+	Item: Item, -- Item()
+	Craftable: Craftable, -- Craftable(Table Recipe, Table Properties, Table Metatable)
+	NonCraftable: NonCraftable, -- NonCraftable(Table Properties, Table Metatable)
+	Id:{
 		["<<<ROOT>>>"]: 0x4df8f86e -- Møøn
 		["NONE"]      : 0 -- Used as placeholders in `NonCraftable` Items
-	
-	Charms:
-		Id:
+	},
+	Charms:{
+		Id:{
 			ERROR: -1
 			Scarab_Charm: 1
 			Djed_Charm: 2
@@ -113,7 +160,7 @@ Items =
 			Sa_Amulet: 28
 			Sekhem_Rune: 29
 			Sema_Rune: 30
-
+		}
 
 		class Scarab_Charm extends Item -- Allows the beholder to keep items after death
 			new: (plrName) =>
@@ -247,9 +294,25 @@ Items =
 						@use!
 				}
 
-		class Lapis_Lazuli_Amulet extends Item -- Brings *slight* luck to the user
+		class Lapis_Lazuli_Amulet extends Craftable -- Brings *slight* luck to the user
 			new: (plrName) =>
-				setmetatable {
+				super {
+					[1]:{ -- Top
+						[1]: "Gold_Dust", -- Top-Left
+						[2]: "Sun_Stone", -- Top-Middle
+						[3]: "Gold_Dust"  -- Top-Right
+					},
+					[2]:{ -- Middle
+						[1]: "Blue_Wool",   -- Mid-Left
+						[2]: "Lapis_Block", -- Center
+						[3]: "Blue_Wool"    -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]: "Gold_Dust",  -- Bottom-Left
+						[2]: "Moon_Stone", -- Bottom-Middle
+						[3]: "Gold_Dust"   -- Bottom-Right
+					}
+				},{
 					Name: "Lapis_Lazuli_Amulet"
 					Id: Items.Charms.Id["Lapis_Lazuli_Amulet"]
 					Owner: API.getPlayer plrName
@@ -270,7 +333,7 @@ Items =
 							@Destroy!
 				},{
 					__call: =>
-						LOG\logInfo "Lapis_Lazuli_Amulet called on player #{@Owner.Name}", nil, "Items"
+						LOG\logInfo "Lapis_Lazuli_Amulet called on player #{@Owner.Name}", nil, "Item.Craftable.Lapis_Lazuli_Amulet"
 						@use!
 				}
 
@@ -487,8 +550,7 @@ Items =
 						[2]:"Golden_Ring", -- Bottom-Middle
 						[3]:"Ink_Vial" -- Bottom-Right
 					}
-				}
-				setmetatable {
+				},{
 					Name: "Ka_Charm"
 					Id: Items.Charms.Id["Ka_Charm"]
 					Owner: API.getPlayer plrName
@@ -509,7 +571,63 @@ Items =
 											.Health = .Health + (.Health - .MaxHealth) * math.abs (math.random! - math.random!)
 						else
 							LOG\logWarn "@Owner is nil, cannot call `callback` properly.",nil, "Item.Craftable.Ka_Charm"
+					use: =>
+						@callback!
+				},{
+					__call: =>
+						@use!
 				}
-		class Menhed_Charm extends Craftable
+		class Menhed_Charm extends Craftable -- Allows owner to craft tablets at less cost
+			new: (plrName) =>
+				@__ITEM = super { -- tRecipe
+					[1]: { -- Top
+						[1]: "Moonstone_Dust", -- Top-Left
+						[2]: "Electrum_Ingot", -- Top-Middle
+						[3]: "Sunstone_Dust"   -- Top-right
+					},
+					[2]:{ -- Middle
+						[1]: "Blank_Tablet", -- Mid-Left
+						[2]: "Scribe_Set",   -- Center
+						[3]: "Blank_Tablet", -- Mid-right
+					},
+					[3]:{ -- Bottom
+						[1]: "Gold_Block", 	   -- Bottom-Left
+						[2]: "Electrum_Block", -- Bottom-Middle
+						[3]: "Silver_Block"    -- Bottom-Right
+					}
+				},{ -- tProperties
+					Name: "Menhed_Charm"
+					Id: Items.charms.Id["Menhed_Charm"]
+					Owner: API.getPlayer plrName
+					callback: =>
+						(S_DATA_STORE\GetDataStore "Stats")\UpdateAsync @Owner, (t) ->
+							{
+								nPlays: t.nPlays,
+								StandingPosition: t.StandingPosition, -- Where they were standing
+								TabletCostLess: t.TabletCostLess + ((x/2.718281828)^-.6183358898)^(0.36787944123356733855191706781332),
+								Humanoid:{
+									MaxHealth: t.Humanoid.MaxHealth,
+									Health: t.Humanoid.Health,
+									WalkSpeed: t.Humanoid.WalkSpeed,
+								},
+								-- // the Player's Bank Account BONUSES
+								Bank:{
+									-- // Reward the player for playing by giving 10% more interest
+									Interest: t.Bank.Interest
+								},
+								Inventory:{
+									-- // Reward the player for playing by giving more uses per-item
+									-- // nUses Subtractive Number (increases *slightly* per-visit)
+									-- 
+									nUsesLess: t.Inventory.nUsesLess
+								}
+							}
+					@use: =>
+						@callback!
+				},{ -- tMT
+					__call: =>
+						@use!
+				}
 
 	}
+}
