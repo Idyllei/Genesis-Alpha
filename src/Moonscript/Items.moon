@@ -1,6 +1,37 @@
 -- Items.moon
 
+-- 
+--	super { -- Recipe
+--		[1]:{ -- Top
+--			[1]: "", -- Top-Left
+--			[2]: "", -- Top-Middle
+--			[3]: ""  -- Top-Right
+--		},
+--		[2]:{ -- Middle
+--			[1]: "", -- Mid-Left
+--			[2]: "", -- Center
+--			[3]: ""  -- Mid-Right
+--		},
+--		[3]:{ -- Bottom
+--			[1]: "", -- Bottom-Left
+--			[2]: "", -- Bottom-Middle
+--			[3]: ""  -- Bottom-Right
+--		}
+--	},{ -- Properties
+--		Name: ""
+--  	Id: 0x4df8f86e
+--  	Owner: nil
+--  	callback: =>
+--  		nil
+--  	use: =>
+--  		nil
+--  },{ -- Metatable
+--  	__call: =>
+--  		@use!
+--  }
+
 Math = require "Math"
+LOG = require "stdlog"
 S_DATA_STORE = game\GetService "DataStoreService"
 ATTACKED_EVENT = game.ReplicatedStorage\FindFirstChild "AttackedEvent"
 PSEUDO_CHAR = with Instance.new "Model"
@@ -60,16 +91,67 @@ NULL_PLAYER = {
 }
 
 class Item
+	-- getItemByType_Id(Type t_, Id id) : template<? extends Item>
+	getItemByType_Id: (t_,id) ->
+		if Items.Types[t_]
+			for v in Items[Items.Types[t_]]
+				if v.getId! == id
+					return v
+		return Items.Item
+	-- newItemByType_Name(Type t_, String name) : template<? extends Item>
+	newItemByType_Name: (t_, name) ->
+		if Items.Types[t_]
+			return Items[Items.Types[t_]][name]!
+		return Items.Item!
+	-- new() : Item item
 	new: =>
-		{
+		@__ITEM: setmetatable {
 			Name: "<<<ROOT>>>"
 			Id: 0x4df8f86e -- Møøn | Items.Id["<<<ROOT>>>"]
 			Owner: nil
+			Type: 0
 			callback: =>
 				return
 			use: =>
 				@callback!
+			getId: =>
+				@Id
+			getName: =>
+				@Name
+			getOwner: =>
+				@Owner
+			getOwnerId: =>
+				@Owner.userId
 		},{
+			__call: =>
+				@use!
+		}
+		@__ITEM
+
+-- Item.ItemERROR
+-- ItemError() : ItemERROR item
+class ItemERROR extends Item
+	-- new() : ItemERROR
+	new: =>
+		@__ITEM: setmetatable {
+			-- `<!>` is my favorite way to show an error;
+			-- In Perl, `$!` is the variable that hold error messagers
+			-- And `<>` is the `$_` (or environment) scalar variable,
+			-- So by combining them, I use it to refer to an ERROR item.
+			Name: "<!>"
+			-- `<!>` in Hex
+			Id: 0x3C213E -- 246,291 OR `<!>`
+			-- No one should EVER own one of these,
+			-- they are for debugging purposes ONLY
+			Owner: nil
+			-- If something attempts to use this item,
+			-- we will log it as an error
+			callback: =>
+				LOG\logError "Attempt to call `ItemERROR` class", nil, "Items.ItemERROR"
+			use: =>
+				@callback!
+		},{
+			-- __call() -> use() -> callback() : nil
 			__call: =>
 				@use!
 		}
@@ -78,27 +160,33 @@ class Item
 -- Item.Craftable
 -- Craftable(Table Recipe, Table Properties, Table Metatable)
 class Craftable extends Item
+	addCraftingRecipe: (tRecipe, item) ->
+		Items.Recipes[tRecipe[1][1]] or= {}
+		Items.Recipes[tRecipe[1][1]][tRecipe[1][2]] or= {}
+		Items.Recipes[tRecipe[1][1]][tRecipe[1][2]][tRecipe[1][3]] or= {}
+		Items.Recipes[tRecipe[1][1]][tRecipe[1][2]][tRecipe[1][3]][tRecipe[2][1]] or= {}
+		Items.Recipes[tRecipe[1][1]][tRecipe[1][2]][tRecipe[1][3]][tRecipe[2][1]][tRecipe[2][2]] or= {}
+		Items.Recipes[tRecipe[1][1]][tRecipe[1][2]][tRecipe[1][3]][tRecipe[2][1]][tRecipe[2][2]][tRecipe[2][3]] or= {}
+		Items.Recipes[tRecipe[1][1]][tRecipe[1][2]][tRecipe[1][3]][tRecipe[2][1]][tRecipe[2][2]][tRecipe[2][3]][tRecipe[3][1]] or= {}
+		Items.Recipes[tRecipe[1][1]][tRecipe[1][2]][tRecipe[1][3]][tRecipe[2][1]][tRecipe[2][2]][tRecipe[2][3]][tRecipe[3][1]][tRecipe[3][2]] or= {}
+		Items.Recipes[tRecipe[1][1]][tRecipe[1][2]][tRecipe[1][3]][tRecipe[2][1]][tRecipe[2][2]][tRecipe[2][3]][tRecipe[3][1]][tRecipe[3][2]][tRecipe[3][3]] or= setmetatable tItem, tMT
+		
+	-- new(Table tRecipe, Table tProperties, Table tMT) : CratableItem
 	new: (tRecipe,tProperties,tMT) =>
 		-- we don't have to set the metatable, yet...
 		@__ITEM: super!
 		-- Set the recipe
 		for _,v1 in ipairs tRecipe
-			if ((type v1) ~= "string") or (not Items.Id[v1])
-				@__ITEM.CraftingRecipe = {
-					[1]:{[1]: "ERROR",[2]: "ERROR",[3]: "ERROR"},
-					[2]:{[1]: "ERROR",[2]: "ERROR",[3]: "ERROR"},
-					[3]:{[1]: "ERROR",[2]: "ERROR",[3]: "ERROR"}
-				}
+			if (not Items.Id[v1]) or ((type v1) ~= "string")
+				LOG\logError "Encountered item with invalid Recipe", nil, "Items.#{tProperties.Name}"
+				break
 		-- If it had an error, let it be, otherwise set it to what it 
 		-- should be
-		@__ITEM.CraftingRecipe or= tRecipe
 		-- Set the properties of the item
 		for kProp,vVal in pairs tProperties
 			pcall -> self[kProp] = vVal
 		-- Now we can set the metatable of the item.
-		setmetatable @__ITEM, tMT
-	getCraftingRecipe: =>
-		return CraftingRecipe
+		@__ITEM
 
 -- Item.NonCraftable
 -- NonCraftable(Table Properties, Table Metatable)
@@ -106,27 +194,43 @@ class NonCraftable extends Item
 	new: (tProperties,tMT) =>
 		-- We don't have to set the metatable, yet...
 		@__ITEM = super!
-		-- Since it has no recipe, set all components to `NONE`
-		@__ITEM.CraftingRecipe = {
-			[1]:{[1]:"NONE",[2]:"NONE",[3]:"NONE"},
-			[2]:{[1]:"NONE",[2]:"NONE",[3]:"NONE"},
-			[3]:{[1]:"NONE",[2]:"NONE",[3]:"NONE"}
-		}
+		-- Since it is not craftable, then we don't have to set it's place in the
+		-- Recipe directory
 		-- Set the item's properties.
 		for kProp,vVal in pairs tProperties
 			pcall -> @__ITEM[kProp] = vVal
 		-- Now we can set the metatable of the item. (And return it)
 		setmetatable @__ITEM, tMT
 
+
+
 Items = {
 
 	Item: Item, -- Item()
 	Craftable: Craftable, -- Craftable(Table Recipe, Table Properties, Table Metatable)
 	NonCraftable: NonCraftable, -- NonCraftable(Table Properties, Table Metatable)
+	Types:{
+		[0]: "CORE",
+		[1]: "RawMaterials", -- Raw Materials used in crafting other items
+		[2]: "Blocks", -- Blocks
+		[3]: "Charms", -- Used for various purposes
+		[4]: "Tablets", -- Used to craft Runes
+		[5]: "Runes", -- Enchantment Runes
+		[6]: "Tomes", -- (Books)
+		[7]: "Keys" -- To advance to next room (mazes)
+	}
+	Recipes: {NONE:{NONE:{NONE:{NONE:{NONE:{NONE:{NONE:{NONE:{NONE:ItemERROR!}}}}}}}},
 	Id:{
-		["<<<ROOT>>>"]: 0x4df8f86e -- Møøn
-		["NONE"]      : 0 -- Used as placeholders in `NonCraftable` Items
+		ROOT      : 0x4df8f86e -- Møøn
+		NONE      : 0 -- Used as placeholders in `NonCraftable` Items
+		ItemERROR : 0x3C213E -- <!>
+		"<!>"     : 0x3C213E -- <!>
 	},
+	RawMaterials:{
+		Id:{
+			ERROR: -1
+		}
+	}
 	Charms:{
 		Id:{
 			ERROR: -1
@@ -162,9 +266,25 @@ Items = {
 			Sema_Rune: 30
 		}
 
-		class Scarab_Charm extends Item -- Allows the beholder to keep items after death
+		class Scarab_Charm extends Craftable -- Allows the beholder to keep items after death
 			new: (plrName) =>
-				setmetatable {
+				super {
+					[1]:{ -- Top
+						[1]:"Gold_Ingot", -- Top-Left   -- |
+						[2]:"Honey_Pot", -- Top-Middle  -- |> Binding
+						[3]:"Gold_Ingot"  -- Top-Right  -- |
+					},
+					[2]:{ -- Middle
+						[1]:"Ankh", -- Mid-Left
+						[2]:"Sun_Stone", -- Center
+						[3]:"Ushabtis_Amulet"  -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]:"Gold_Ingot", -- Bottom-Left   -- |
+						[2]:"Honey_Pot", -- Bottom-Middle  -- |> Binding
+						[3]:"Gold_Ingot"  -- Bottom-Right  -- |
+					}
+				},{
 					Name: "Scarab_Charm"
 					Id: Items.Charms.Id["Scarab_Charm"]
 					Owner: API.getPlayer plrName
@@ -181,9 +301,25 @@ Items = {
 						@callback!
 				}
 
-		class Djed_Charm extends Item -- Gives the owner resistance to fall damage
+		class Djed_Charm extends Craftable -- Gives the owner resistance to fall damage
 			new: (plrName) =>
-				setmetatable {
+				super {
+					[1]:{ -- Top
+						[1]:"Clay_Block", -- Top-Left    -- |
+						[2]:"Slime_Ball", -- Top-Middle  -- |> Binding
+						[3]:"Clay_Block"  -- Top-Right   -- |
+					},
+					[2]:{ -- Middle
+						[1]:"Soft_Cloud",    -- Mid-Left
+						[2]:"Diamond_Boots", -- Center
+						[3]:"Soft_Cloud"     -- Mid-Right
+					},
+					[3]:{
+						[1]:"Clay_Block", -- Bottom-Left   -- |
+						[2]:"Slime_Ball", -- Bottom-Middle -- |> Binding
+						[3]:"Clay_Block"  -- Bottom-Right  -- |
+					}
+				},{
 					Name: "Djed_Charm"
 					Id: Items.Charms.Id["Djed_Charm"]
 					Owner: API.getPlayer plrName
@@ -196,9 +332,9 @@ Items = {
 						return ...
 				}
 
-		class Isis_Curse_Charm extends Item
+		class Isis_Curse_Charm extends NonCraftable -- NOT Craftable
 			new: (plrName) =>
-				setmetatable {
+				super {
 					Name: "Isis_Curse_Charm"
 					Id: Items.Charms.Id["Isis_Curse_Charm"]
 					Owner: API.getPlayer plrName
@@ -216,17 +352,34 @@ Items = {
 						@use player
 				}
 
-		class Amethyst_Luck_Amulet extends Item -- Increases chances at high tier bounty
+		class Amethyst_Luck_Amulet extends Craftable -- Increases chances at high tier bounty
 			new: (plrName)=>
-				setmetatable {
+				super {
+					[1]:{ -- Top
+						[1]:"Stick", -- Top-Left
+						[2]:"String", -- Top-Middle
+						[3]:"Stick"  -- Top-Right
+					},
+					[2]:{ -- Middle
+						[1]:"Honey_Pot", -- Mid-Left
+						[2]:"Amethyst", -- Center
+						[3]:"Thyme" -- Middle-Right
+					},
+					[3]:{ -- Bottom
+						[1]:"Stick", -- Bottom-Left
+						[2]:"String", -- Bottom-Middle
+						[3]:"Stick"  -- Bottom-Right
+					}
+				},{
 					Name: "Amethyst_Luck_Amulet"
 					Id: Items.Charms.Id["Amethyst_Luck_Amulet"]
 					Owner: API.getPlayer plrName
 					callback: =>
 						if @Owner
 							(S_DATA_STORE\GetDataStore "Bounty_Luck")\UpdateAsync @Owner.Name, (val) ->
-								val * (Math.random 1.25,1.625)
+								val * (math.random 1.25,1.625)
 							(S_DATA_STORE\GetDataStore "Bounty_Luck")\GetAsync @Owner.Name
+							@Destroy!
 					use: =>
 						@callback!
 				},{
@@ -235,9 +388,25 @@ Items = {
 						@use!
 				}
 
-		class Sun_Stone_Utere_Fexix_Luck_Charm extends Item
+		class Sun_Stone_Utere_Fexix_Luck_Charm extends Craftable
 			new: (plrName) =>
-				setmetatable {
+				super {
+					[1]:{ -- Top
+						[1]:"Stick", -- Top-Left    -- |
+						[2]:"String", -- Top-Middle -- |> Binding
+						[3]:"Stick" -- Top-Right    -- |
+					},
+					[2]:{ -- Middle
+						[1]:"Imenet_Charm", -- Mid-Left -- Helas owner at dawn
+						[2]:"Sun_Stone", -- Center
+						[3]:"Ka_Charm" -- Mid-Right -- Heals owner at dusk
+					},
+					[3]:{ -- Bottom
+						[1]:"Stick", -- Bottom-Left    -- |
+						[2]:"String", -- Bottom-Middle -- |> Binding
+						[3]:"Stick" -- Bottom-Right    -- |
+					}
+				},{
 					Name: "Sun_Stone_Utere_Fexix_Luck_Charm"
 					Id: Items.Charms.Id["Sun_Stone_Utere_Fexix_Luck_Charm"]
 					Owner: API.getPlayer plrName
@@ -254,9 +423,25 @@ Items = {
 						@use!
 				}
 
-		class Wedjat_Eye_Amulet extends Item -- Provides a health buff and higher health
+		class Wedjat_Eye_Amulet extends Craftable -- Provides a health buff and higher health
 			new: (plrName) =>
-				setmetatable {
+				super {
+					[1]:{ -- Top
+						[1]:"String", -- Top-Left
+						[2]:"NONE", -- Top-Middle
+						[3]:"String" -- Top-Right
+					},
+					[2]:{ -- Middle
+						[1]:"Glowing_Water", -- Mid-Left
+						[2]:"Heart", -- Center
+						[3]:"Pixie_Dust" -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]:"NONE", -- Bottom-Left
+						[2]:"NONE", -- Bottom-Middle
+						[3]:"NONE" -- Bottom-Right
+					}
+				},{
 					Name: "Wedjat_Eye_Amulet"
 					Id: Items.Charms.Id["Wedjat_Eye_Amulet"]
 					Owner: API.getPlayer plrName
@@ -268,13 +453,29 @@ Items = {
 						@callback!
 				},{
 					__call: =>
-						LOG\logInfo "Wedjat_Eye_Amulet called on player #{@Owner.Name}", nil, "Items"
+						LOG\logInfo "Wedjat_Eye_Amulet called on player #{@Owner.Name}", nil, "Items.charms.Wedjat_Eye_Amulet"
 						@use!
 				}
 
-		class Evil_Eye_Amulet extends Item -- Give attacker bad luck
+		class Evil_Eye_Amulet extends Craftable -- Give attacker bad luck
 			new: (plrName) =>
-				setmetatable {
+				super {
+					[1]:{ -- Top
+						[1]: "Gold_Ingot",     -- Top-Left
+						[2]: "Electrum_Ingot", -- Top-Middle
+						[3]: "Silver_Ingot"    -- Top-Right
+					},
+					[2]:{ -- Middle
+						[1]: "Sun_Stone",  -- Mid-Left
+						[2]: "Wraith_Eye", -- Center
+						[3]: "Moon_Stone"  -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]: "Gold_Ingot",     -- Bottom-Left
+						[2]: "Electrum_Ingot", -- Bottom-Middle
+						[3]: "Silver_Ingot"    -- Bottom-Right
+					}
+				},{
 					Name: "Evil_Eye_Amulet"
 					Id: Items.Charms.Id["Evil_Eye_Amulet"]
 					Owner: API.getPlayer plrName
@@ -337,9 +538,25 @@ Items = {
 						@use!
 				}
 
-		class Isis_Knot extends Item -- Protects wearer from direct attacks (bare hand/type `0` tool)
+		class Isis_Knot extends Craftable -- Protects wearer from direct attacks (bare hand/type `0` tool)
 			new: (plrName) =>
-				setmetatable {
+				super { -- Recipe
+					[1]:{ -- Top
+						[1]: "NONE",   -- Top-Left
+						[2]: "String", -- Top-Middle
+						[3]: "NONE"    -- top-Left
+					},
+					[2]:{ -- Middle
+						[1]: "String", -- Mid-Left
+						[2]: "Clay",   -- Center
+						[3]: "String"  -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]: "NONE",   -- Bottom-Left
+						[2]: "String", -- Bottom-Middle
+						[3]: "NONE"    -- Bottom-Right
+					}
+				},{ -- Properties
 					Name: "Isis_Knot"
 					Id: Items.Charms.Id["Isis_Knot"]
 					Owner: API.getPlayer plrName
@@ -357,7 +574,7 @@ Items = {
 									-- -1 is the weaponType to use to show that it is the server (versus the client) doing the damage here
 					use: =>
 						@callback!
-				},{
+				},{ -- Metatable
 					__call: =>
 						@use!
 				}
@@ -372,9 +589,25 @@ Items = {
 								LOG\logInfo "Isis_Knot Blocked damage from direct attack on #{recipient.Name}", nil, "Item.NonCraftable.Isis_Knot"
 						values = pack (game.ReplicatedStorage\FindFirstChild "AttackedEvent").OnServerEvent\wait!
 
-		class Plummet_Amulet extends Item -- Prevents SOME fall damage to owner
+		class Plummet_Amulet extends Craftable -- Prevents SOME fall damage to owner
 			new: (plrName) =>
-				setmetatable {
+				super { -- Recipe
+					[1]:{ -- Top
+						[1]: "Feather",   -- Top-Left
+						[2]: "Soft_Sand", -- Top-Middle
+						[3]: "Feather"    -- Top-Right
+					},
+					[2]:{ -- Middle
+						[1]: "NONE",        -- Mid-Left
+						[2]: "Slime_Block", -- Center
+						[3]: "NONE"         -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]: "Enchanted_Book__Feather_Falling", -- Bottom-Left
+						[2]: "Quicksilver",                     -- Bottom-Middle
+						[3]: "Diamond_Boots"                    -- Bottom-Right
+					}
+				},{ -- Properties
 					Name: "Plummet_Amulet"
 					Id: Items.Charms.Id["Plummet_Amulet"]
 					Owner: API.getPlayer plrName
@@ -391,14 +624,30 @@ Items = {
 					use: => @callback!
 					unequip: =>
 						(@Owner.Character\FindFirstChild "Impact").Disabled = true
-				},{
+				},{ -- Metatable
 					__call: =>
 						@use!
 				}
 
-		class Sesen_Charm extends Item -- Saves the owner's inventory (up to 10 times)
+		class Sesen_Charm extends Craftable -- Saves the owner's inventory (up to 10 times)
 			new: (plrName) =>
-				setmetatable {
+				super { -- Recipe
+					[1]: { -- Top
+						[1]: "Stick",    -- Top-Left
+						[2]: "Diamond",  -- Top-Middle
+						[3]: "Stick"     -- Top-Right
+					},
+					[2]:{ -- Middle
+						[1]: "Leather",  -- Mid-Left
+						[2]: "Diamond",  -- Center
+						[3]: "Leather"   -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]: "Stick",   -- Bottom-Left
+						[2]: "Diamond", -- Bottom-Middle
+						[3]: "Stick"    -- Bottom-Right
+					}
+				},{ -- Properties
 					Name: "Sesen_Charm"
 					Id: Items.Charms.Id["Sesen_Charm"]
 					Owner: API.getPlayer plrName
@@ -420,14 +669,30 @@ Items = {
 							v = nil
 						-- `Destroy` self
 						self = nil
-				},{
+				},{ -- Metatable
 					__call: =>
 						@use!
 				}
 
-		class Double_Plume_Feathers_Amulet extends Item -- Provides Owner 2x Jump Height
+		class Double_Plume_Feathers_Amulet extends Craftable -- Provides Owner 2x Jump Height
 			new: (plrName) =>
-				setmetatable {
+				super: {
+					[1]:{ -- Top
+						[1]: "Feather",     -- Top-Left
+						[2]: "Aer_Essence", -- Top-Middle
+						[3]: "Feather"      -- Top-right
+					},
+					[2]:{ -- Middle
+						[1]: "Solid_Aer", -- Mid-Left
+						[2]: "Sapphire",  -- Center
+						[3]: "Solid_Aer"  -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]: "Quartz_Block", -- Bottom-Left
+						[2]: "Silver_Block", -- Bottom-Middle
+						[3]: "Quartz_Block"  -- Bottom-Right
+					}
+				},{
 					Name: "Double_Plume_Feathers_Amulet"
 					Id: Items.Charms.Id["Double_Plume_Feathers_Amulet"]
 					Owner: API.getPlayer plrName
@@ -450,9 +715,25 @@ Items = {
 									force = (Vector3.new 0,192.6,0) * (GetMass chr)
 									Parent = chr.Character.Humanoid.Torso
 
-		class Shen_Amulet extends Item -- Gives 2.5x Health to @Owner
+		class Shen_Amulet extends Craftable -- Gives 2.5x Health to @Owner
 			new: (plrName) =>
-				setmetatable {
+				super {
+					[1]:{ -- Top
+						[1]: "Blood_Vial",   -- Top-Left
+						[2]: "Copper_Ingot", -- Top-Middle
+						[3]: "Blood_Vial"    -- Top-Right
+					},
+					[2]:{ -- Middle
+						[1]: "Healing_Tablet", -- Mid-Left
+						[2]: "Herb_Sack",      -- Center
+						[3]: "Healing_Tablet"  -- Mid-Right
+					},
+					[3]:{ -- Bottom
+						[1]: "Skull", -- Bottom-Left
+						[2]: "Heart", -- Bottom-Middle
+						[3]: "Skull"  -- Bottom-Right
+					}
+				},{
 					Name: "Shen_Amulet"
 					Id: Items.Charms.Id["Shen_Amulet"]
 					Owner: API.getPlayer plrName
@@ -464,7 +745,7 @@ Items = {
 					__call: =>
 						@use!
 				}
-				with (API.getPlayer plrName).Character
+				with (@Owner.Character or (API.getPlayer plrName).Character)
 					.MaxHealth *= 2.5
 					.Health = .MaxHealth
 				thread ->

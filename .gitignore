@@ -40,3 +40,4 @@ src/Moonscript/TypicTwister.moon
 src/Moonscript/TypicTwister_Test.lua
 src/Moonscript/TypicTwister.lua
 src/Moonscript/Items.lua
+src/Moonscript/bit.lua
