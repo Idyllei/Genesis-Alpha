@@ -49,9 +49,10 @@ class LOG
 		for v in tData
 			print v
 		@stdLog = CircularBuffer.CreateCircularBuffer 512
+		return tData
 
 	-- Alias for `__purgeLogBuffer`
-	flush: ->
+	flush: =>
 		@__purgeLogBuffer!
 
 	logInfo: (sMsg, nTime=os.time!, sSource="UNKNOWN SOURCE") =>
@@ -74,14 +75,25 @@ class LOG
 		if out
 			print out
 
+	logExcept: @logException
+
 	logError: (sMsg, nTime=os.time!, sSource="UNKNOWN SOURCE") =>
 		out = stdlog\Add (@__formatLog sMsg, "ERROR", nTime, sSource)
 		if out
 			print out
 
+	logErr: @logError
+
 	logFatal: (sMsg, nTime=os.time!, sSource="UNKNOWN SOURCE") =>
 		out = stdlog\Add (@__formatLog sMsg, "FATAL", nTime, sSource)
 		if out
 			print out
+
+	logDie: (sMsg, nTime=os.time!, sSource="UNKNOWN SOURCE") =>
+		pcall ->
+			out = stdlog\Add (@__formatLog sMsg, "FATAL", nTime, sSource)
+			-- make sure that 'out' is there to print it, otherwise pass it 
+			-- silently and 
+			assert not out, out
 
 return LOG

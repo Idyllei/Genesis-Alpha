@@ -1,7 +1,9 @@
 -- A*.lua
+
 math = require "Math"
-from type2 import is_a_vector3,is_a_cframe
-from API import getCharacter
+
+import is_a_vector3,is_a_cframe from require "type2"
+import getCharacter from require "API"
 
 class Pathfinder
 	new: (startPath,endPoint,char_) =>
@@ -49,7 +51,7 @@ class Pathfinder
 				wait!
 			i += 1
 			if math.random! >= .875 -- A (semi) random check for Path Occlusions
-				if (point = @path[@path_\CheckOcclusionAsync!]) and (path_\CheckOcclusionAsync! == i)-- If it IS blocked, then recompute from the blocked point
+				if (point == @path[@path_\CheckOcclusionAsync!]) and (path_\CheckOcclusionAsync! == i)-- If it IS blocked, then recompute from the blocked point
 					@path_ = (game\GetService "PathfindingService")\ComputeRawPathAsync point, @path[-1], (point-@path[-1]).magntiude*(2048%(point-@path[-1]).magnitude)
 					@path = @path_\GetPointCoordinates!
 

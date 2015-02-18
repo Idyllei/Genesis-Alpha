@@ -1,7 +1,8 @@
 CONFIG = 
+	spawnpoints: {}
 	-- A random spawn point every server
 	spawnPoint: with Instance.new "SpawnPoint"
-		.Position = Vector3.new unpack({}[math.random 1,3])
+		.Position = Vector3.new (unpack spawnpoints[math.random 1,#spawnpoints])
 		.Transparency = 1
 		.Anchored = true
 		.CanCollide = false

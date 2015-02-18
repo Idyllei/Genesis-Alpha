@@ -1,6 +1,5 @@
 local bit = bit32 or require("bit")
-local bxor, band, brshift, blshift
-bxor, band, brshift, blshift = bit.bxor, bit.band, bit.brshift, bit.blshift
+local bxor, band, brshift, blshift = bit.bxor, bit.band, bit.brshift, bit.blshift
 bit = nil
 local insert, remove
 do

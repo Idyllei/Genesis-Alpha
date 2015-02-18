@@ -1,7 +1,19 @@
 -- main.moon
 
+-- /* Argument Type Notation:
+--  * Abstract Class: Abstract_Class<Name>
+--  * Class: Class<Name, sub[SuperclassName] | inherit[ParentName]>
+--  * Enumeration: Enum<Name, minEnumValue, maxEnumValue>
+--  * Function: Function<Args..., Return<Type...>>
+--  * Integer: Int[minValue, maxValue] | Int[minValue] | Int[,maxValue]
+--  * String: String[minLength, maxLength] | String[length]
+--  * Table: Table<IndexType, ValueType> | Table<Tuple> | Table<> | Table<...> | Table<undef>
+--  */
+
 -- /* Variable Notation:
 --  * S_    : Game Service
+--  * M_	: Module
+--  * E_	: Event
 --  * chr   : Character
 --  * plr   : Player
 --  * n     : Number (Usually b10)
@@ -22,14 +34,28 @@
 --  * h     : Hash (w/o mixed-NULL characters)
 --  * hb    : Hash (Binary, w/ mixed-NULL characters)
 --  * c     : Clock/Timer
+--  * <ALL_CAPITALS_AND_UNDERSCORES> : Constant (Do not edit)
+--  * <NONE OF THE ABOVE> : Most likely a 'Module'
+--  */
 
---  * <NONE OF THE ABOVE> : Most likely a constant or 'Module'
+-- Moonscript OOP Doc:
+-- class.__inherited(...) : Fired when a class inherits from `class`
+-- class.__class : the type of the class `class`
+-- class.__base : Modifying this value modifies all other classes that 
+-- inherit from the same base
+-- class.__parent : hold the class of the parent that `class` inherits
+-- @@ : Indexes `self.__class`
+  -- ex: @@hello!
+  --     self.__class.hello()
+
+
+
 
 
 --------------------------
 -- Set up Nevermore Engine
 --------------------------
-ReplicatedStorage     = game:GetService "ReplicatedStorage"
+ReplicatedStorage     = game\GetService "ReplicatedStorage"
 
 Nevermore             = require ReplicatedStorage\WaitForChild "NevermoreEngine"
 LoadCustomLibrary     = NevermoreEngine.LoadLibrary
@@ -95,6 +121,7 @@ townConfig = require "townConfig"
 API = require "API"
 INVENTORY = require "Inventory"
 Logger = require "stdlog"
+RunTests = require "runTests"
 
 -- // Game Services
 S_RUN = game\GetService "RunService"
@@ -102,7 +129,7 @@ S_DEBRIS = game\GetService "DebrisService"
 S_SCRIPT_CONTEXT = game\GetService "ScriptContext"
 S_SCRIPT_DEBUGGER = game\GetService "ScriptDebugger"
 S_DATA_STORE = game\GetService "DataStoreService"
-PLAYERS = game.Players
+S_PLAYERS = game.Players
 
 -- Event Maids (used by the game):
 CoreMaids = {
@@ -142,9 +169,61 @@ log2 = (n) ->
 	else
 		x
 
+round = (number, places) ->
+	mult = 10^(point or 0)
+	(math.floor number * mult + 0.5) / mult
 
-r3i = -> (...) -- (r3i v1.x,v1.y,v1.z,v2.x,v2.y,v2.z)
-    Region3int16.new (Vector3int16.new select 1,...),(Vector3int16.new select 4,...)
+RUNTEST (getfenv 0), "round", {
+	ARG:{
+		{100.255, 2},
+		{0.0625, 6},
+		{math.pi, 3},
+		{math.huge, 1},
+		{-math.huge, 1},
+		{1/3, 3}
+	},
+	EXPECTED:{
+		100.26,
+		0.062500,
+		3.15,
+		math.huge,
+		-math.huge,
+		0.333
+	}
+}
+
+xround = (number, places) ->
+	x = if (number*places<0) then -0.5 else 0.5
+	(math.modf number*places+x)[1] / places
+
+RUNTEST (getfenv 0), "xround", {
+	ARG:{
+		{100.255, 2},
+		{12345.678,-2},
+		{0.0625, 6},
+		{math.pi, 3},
+		{math.pi, -3},
+		{math.huge, 1},
+		{math.huge, -1},
+		{-math.huge, 1},
+		{1/3, 3}
+	},
+	EXPECTED:{
+		100.26,
+		12345.68,
+		0.062500,
+		3.15,
+		3.15,
+		math.huge,
+		math.huge,
+		-math.huge,
+		0.333
+	}
+}
+
+-- r3i = -> (...) -- (r3i v1.x,v1.y,v1.z,v2.x,v2.y,v2.z)
+--    Region3int16.new (Vector3int16.new select 1,...),(Vector3int16.new select 4,...)
+
 -- /*
 --  * Heartbeat wait
 --  * Waits for a default of 1/30 of a second, as per the default wait time
@@ -223,22 +302,6 @@ main = ->
 -- ///////SETUP//////
 -- //////////////////
 
---    /////////////////
---	 // FALL-DAMAGE //
---  /////////////////
-
--- /*
---  * Adds the `Impact` script into the player's character when they spawn
---  * so that they receive fall damage from high heights.
---  * 
---  * NOTE: `Impact` ignores fall damage if the player owns certain items
---  * items in their inventory (thet prevent fall damage)
---  */
-CoreMaids["PlayerAdded"]["Impact"] = PLAYERS.PlayerAdded\connect (plr) ->
-			plr.CharacterAdded\connect (chr) ->
-				with script.Impact\Clone!
-					.Parent = chr.Humanoid
-					.Disabled = false
 
 --	  //////////
 --	 // BANK //
@@ -248,7 +311,7 @@ CoreMaids["PlayerAdded"]["Impact"] = PLAYERS.PlayerAdded\connect (plr) ->
 --  * Sets the player's bank account when they join the game.
 --  * If they haven't played before, creates a new account for them.
 --  */
-CoreMaids["PlayerAdded"]["Bank"] = PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Bank"] = S_PLAYERS.PlayerAdded\connect (plr) ->
 	-- // Shouldn't need API.getPlayer(Player) for `plr`, as it always will be
 	-- // if the player already has an account:
 	if acc = (S_DATA_STORE\GetDataStore "Bank")\GetAsync plr.Name
@@ -268,38 +331,39 @@ CoreMaids["PlayerAdded"]["Bank"] = PLAYERS.PlayerAdded\connect (plr) ->
 --  * TODO: Make this a non-hacky method. Preferably on that uses global
 --  * variables.
 --  */
-CoreMaids["PlayerAdded"]["Stamina"] = PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Stamina"] = S_PLAYERS.PlayerAdded\connect (plr) ->
 	plr.CharacterAdded\connect (chr) ->
-		thread ->
+		Spawn ->
 			nStamina = 100
 			bRunning = false
 
 			-- make a new thread to change their WalkSpeed
-			thread ->
+			Spawn ->
 				-- check stamina every 1/2 second
 				while wait .5
 					-- if they have very little stamina
 					if nStamina < 10
 						-- make them slow
-						chr.Humanoid.WalkSpeed = 8
+						chr.Humanoid.WalkSpeed = round (chr.Humanoid.WalkSpeed*(nStamina/100)*(1-chr.HumanoidWalkSpeedMultiplier.Value)), 2
 					else
-						chr.Humanoid.WalkSpeed = 16
+						-- speed them up
+						chr.Humanoid.WalkSpeed = round (chr.Humanoid.WalkSpeed*(nStamina/100)*(1+chr.HumanoidWalkSpeedMultiplier.Value)), 2
 			
 			-- do a rapid loop
 			-- /* TODO: Should we change it to `wait .25` to allow other
 			--  *  processes to run more often, & for longer?
 			--  */
 			while wait!
-				-- make sure stamina is NOT less than 0
-				nStamina = (nStamina > 0) and nStamina or 0
+				-- make sure stamina is NOT less than 1
+				nStamina = (nStamina >= 1) and nStamina or 1
 				-- if they start or stop, invert `running`
 				if chr.Humanoid.Running\wait!
 					bRunning = not bRunning
-				-- while they have stamina, reduce what is remaining
+				-- while they have stamina, reduce what is remaining ONLY if they are faster than def. WS
 				if bRunning and chr.Humanoid.Running\wait! >= 16
 					while bRunning and wait 1
 						nStamina -= 7.5
-				-- if they are slower (not full stamina)
+				-- if they are slower (not def. WS)
 				elseif chr.Humanoid.Running\wait! < 16
 					-- replinish it slowly
 					while wait .5
@@ -318,7 +382,7 @@ CoreMaids["PlayerAdded"]["Stamina"] = PLAYERS.PlayerAdded\connect (plr) ->
 --  * a reward for playing the game at least once.
 --  */
 
-CoreMaids["PlayerAdded"]["Inventory"] = PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Inventory"] = S_PLAYERS.PlayerAdded\connect (plr) ->
 	-- // Load the player's inventory so that we msay proceed
 	plrInventory = INVENTORY.loadInventory plr.Name
 	-- // iterate through each item and reduce its `nUses`
@@ -337,7 +401,7 @@ CoreMaids["PlayerAdded"]["Inventory"] = PLAYERS.PlayerAdded\connect (plr) ->
 --  *
 --  * NOTE: Uses NevermoreEngine's `RawCharacter` module
 --  */
-CoreMaids["PlayerAdded"]["Death"] = PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Death"] = S_PLAYERS.PlayerAdded\connect (plr) ->
 	CoreMaids["CharacterAdded"]["Death"] = plr.CharacterAdded\connect (chr) ->
 		CoreMaids["Died"]["Death"] = chr.Humanoid.Died\connect ->
 			-- // Save the player's inventory if they have a `Scarab_Charm`
@@ -370,7 +434,7 @@ CoreMaids["PlayerAdded"]["Death"] = PLAYERS.PlayerAdded\connect (plr) ->
 --  * time the player joins the game.
 --  */
 
-CoreMaids["PlayerRemoving"]["Save"] = PLAYERS.PlayerRemoving\connect (plr) ->
+CoreMaids["PlayerRemoving"]["Save"] = S_PLAYERS.PlayerRemoving\connect (plr) ->
 	-- // Save the player's Bank Account for the next time they join the game
 	(S_DATA_STORE\GetDataStore "Bank")\SetAsync plr.Name,accounts[plr.Name]
 	-- // Save the player's inventory for the next time they join the game
@@ -406,7 +470,7 @@ CoreMaids["PlayerRemoving"]["Save"] = PLAYERS.PlayerRemoving\connect (plr) ->
 --  * Creates 2 messages, one for ther player to see, and 
 --  * one for all players to see (5s after the local message)
 --  */
-CoreMaids["PlayerAdded"]["Luck"] = PLAYERS.PlayerAdded\connect (plr) ->
+CoreMaids["PlayerAdded"]["Luck"] = S_PLAYERS.PlayerAdded\connect (plr) ->
 	(S_DATA_STORE\GetDataStore "Plays")\UpdateAsync "Plays", (nVal)->
 		-- Check to see if `nVal` is a power of `10`, which is a lucky #
 		-- in the game.

@@ -1,20 +1,23 @@
 -- // Inventory.moon
+import __extends__ from require "__Extends__"
 import Item from (require "Items")	-- For some reason, MoonScript acts as if
 									-- `*` from `from *` is a variable that is
 									-- in our local scope, when it should
 									-- actually call `require` on it beforehand
+hashids = require "hashids"
+hashAlphabet = "ABCDEF1234567890" -- Hex
 class Inventory
 	@__PLAYER_INVENTORIES: {}
 
-	getInventory: (sPlrName) =>
-		@__PLAYER_INVENTORIES[sPlrName]
+	getInventory: (plrName) =>
+		@__PLAYER_INVENTORIES[plrName]
 
-	loadInventory: (sPlrName) =>
-		@__PLAYER_INVENTORIES[sPlrName] = ((S_DATA_STORE\GetDataStore "Inventories")\GetAsync sPlrName) or @new sPlrName
+	loadInventory: (plrName) =>
+		@__PLAYER_INVENTORIES[plrName] = ((S_DATA_STORE\GetDataStore "Inventories")\GetAsync plrName) or @new plrName
 		@__PLAYER_INVENTORIES
 
 	new: (plrName) ->
-		@__PLAYER_INVENTORIES[plrName]: setmetatable t,{
+		@__PLAYER_INVENTORIES[plrName]= setmetatable {},{
 			__index: {
 				Owner: plrName
 				INVENTORY: {}
@@ -29,13 +32,12 @@ class Inventory
 						--for v in item.Name\gsub "."
 							--h ..= string.char (math.floor h\byte! + item.Name\len! - (math.floor 1.618 ^ index)) / ((item.Name\len!-8)/2)
 						--h ..= ".#{x}.#{y}"
-				
 				contains: (itemName) =>
 					for _,v in pairs @INVENTORY
 						-- Just in case they pass in an Id, check to make
 						-- sure that it doesn't match an Id of an item.
 						if (v.Name == itemName) or (v.Id == itemName)
-							true
+							return true
 					false
 
 				-- Alias for `contains`
@@ -93,7 +95,7 @@ class Inventory
 			}
 			-- Inventory[{x,y}] = Item!
 			__newindex: (i,v) => -- `i` SHOULD be {x,y}
-				if (v.__parent == Item)
+				if (v.__extends__ Item)
 					--@Inventory[@hash v.Name, i.x, i.y] = v
 					@Inventory[i] = v
 				else

@@ -1,8 +1,23 @@
 local API = {
   _Inventory = require("Inventory"),
   _PlayerSettings = require("PlayerSettings"),
-  config = require("towns.config")
+  config = require("towns.config"),
+  _GlobalSettings = {
+    ops = { },
+    banned = { },
+    priveledged = { },
+    punished = { },
+    locked = { },
+    commands = { }
+  }
 }
+API.shorter = function(a, b)
+  if a and b then
+    return (#a <= #b) and a or b
+  else
+    return a or b
+  end
+end
 API.getPlayers = function()
   local _tbl_0 = { }
   for v in game.Players:GetPlayers() do
@@ -26,7 +41,7 @@ end
 API.getPlayerStatus = function(self, ...)
   if #{
     ...
-  } > 1 then
+  } >= 1 then
     local _tbl_0 = { }
     for i, v in pairs({
       ...
@@ -34,14 +49,10 @@ API.getPlayerStatus = function(self, ...)
       _tbl_0[i] = (self:getPlayer(v)).Character.Humanoid.Status.Value
     end
     return _tbl_0
+  else
+    error("", 2)
+    return { }
   end
-  if #{
-    ...
-  } == 1 then
-    return (self:getPlayer(...)).Character.Humanoid.Status.Value
-  end
-  error("", 2)
-  return { }
 end
 API.setPlayerStatus = function(self, stat, ...)
   for i, v in pairs({
@@ -53,9 +64,10 @@ API.setPlayerStatus = function(self, stat, ...)
     ...
   } > 0 then
     return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
 API.animateDeath = function(self, player)
   for v in (self:getPlayer(player)).Character:GetChildren() do
@@ -66,31 +78,38 @@ API.animateDeath = function(self, player)
   if self._PlayerSettings[(self:getPlayer(player)).Name].SaveInventory then
     self._Inventory.savePlayerInventory((self:getPlayer(player)).Name)
   end
-  return ((self:getPlayer(player)).playerGui:FindFirstChild("Respawnbutton")).MouseButton1Click:connect(function()
+  return ((self:getPlayer(player)).playerGui:FindFirstChild("RespawnButton")).MouseButton1Click:connect(function()
     return self:respawnPlayer(self:getPlayer(player))
   end)
 end
 API.loadPlayerSkin = function(self, player)
   if player then
-    ((self:getPlayer(player)).Character:FindfirstChild("Shirt")).ShirtTemplate = "http://www.roblox.com/asset/?id=" .. (((game:GetService("DataStoreService")):GetGlobalDataStore()):GetAsync((self:getPlayer(player)).Name)) .. "$shirtTemplate"
-    ((self:getPlayer(player)).Character:FindfirstChild("Pants")).PantsTemplate = "http://www.roblox.com/asset/?id=" .. (((game:GetService("DataStoreService")):GetGlobalDataStore()):GetAsync((self:getPlayer(player)).Name)) .. "$pantsTemplate"
-    local _ = true
+    ((self:getPlayer(player)).Character:FindFirstChild("Shirt")).ShirtTemplate = "http://www.roblox.com/asset/?id=" .. (((game:GetService("DataStoreService")):GetGlobalDataStore()):GetAsync((self:getPlayer(player)).Name)) .. "$shirtTemplate"
+    ((self:getPlayer(player)).Character:FindFirstChild("Pants")).PantsTemplate = "http://www.roblox.com/asset/?id=" .. (((game:GetService("DataStoreService")):GetGlobalDataStore()):GetAsync((self:getPlayer(player)).Name)) .. "$pantsTemplate"
+    return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
-API.op = function(self, player)
+API._GlobalSettings.commands.reloadSkins = function(self, user)
+  for _, plr in pairs(self:getPlayers()) do
+    self:loadPlayerSkin(plr)
+  end
+end
+API._GlobalSettings.commands.op = function(self, user, player)
   if player then
     table.insert(self._GlobalSettings.ops, (self:getPlayer(player)).Name)
-    local _ = true
+    return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
-API.deOp = function(self, player)
+API._GlobalSettings.commands.deOp = function(self, user, player)
   if player then
     local playerName = (self:getPlayer(player)).Name
-    local pos
+    local pos = nil
     for i, v in pairs(self:getPlayers()) do
       if v == playerName then
         pos = i
@@ -98,12 +117,13 @@ API.deOp = function(self, player)
       end
     end
     table.remove(self._GlobalSettings.ops, pos)
-    local _ = true
+    return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
-API.kick = function(self, player)
+API._GlobalSettings.commands.kick = function(self, user, player)
   if player then
     local playerName = (self:getPlayer(player)).Name
     if (self.config.gentleKick == 1) then
@@ -121,19 +141,21 @@ API.kick = function(self, player)
         end
       end)
     end))
-    local _ = true
+    return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
-API.ban = function(self, player)
+API._GlobalSettings.commands.ban = function(self, user, player)
   if player then
     (self:getPlayer(player)):Kick()
     table.insert(self._GlobalSettings.banned, (self:getPlayer(player)).Name)
-    local _ = true
+    return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
 API.getNPCHealth = function(mouse)
   return mouse.Target.Humanoid.Health
@@ -151,17 +173,19 @@ API.changeSetting = function(self, setting, value)
   end
   if (((type(Value)) == (type(self._GlobalSettings[setting]))) or (self._GlobalSettings[setting] == nil)) then
     self._GlobalSettings[setting] = value
-    local _ = true
+    return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
 API.getPlayerPosition = function(self, player)
   if player then
-    local _ = ((self:getPlayer(player)).Character:findFirstChild("HumanoidRootPart")).Position
+    return ((self:getPlayer(player)).Character:findFirstChild("HumanoidRootPart")).Position
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
 API.setCameraNormal = function(self, player)
   local LFPLocal = ((game:GetService("ReplicatedStorage")):FindFirstChild("LFPLocal")):Clone()
@@ -169,9 +193,10 @@ API.setCameraNormal = function(self, player)
   LFPLocal.Disabled = false
   if player then
     return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
 API.setCameraFixed = function(self, player)
   local CFixedLocal = ((game:GetService("ReplicatedStorage")):FindFirstChild("CameraFixedLocal")):Clone()
@@ -179,9 +204,10 @@ API.setCameraFixed = function(self, player)
   CFixedLocal.Disabled = false
   if player then
     return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
 API.setCameraFollow = function(self, player)
   local CFollowLocal = ((game:GetService("ReplicatedStorage")):FindFirstChild("CameraFollowLocal")):Clone()
@@ -189,9 +215,10 @@ API.setCameraFollow = function(self, player)
   CFollowLocal.Disabled = false
   if player then
     return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
 API.setCameraPosition = function(self, player, vec3)
   if player and vec3 then
@@ -199,10 +226,11 @@ API.setCameraPosition = function(self, player, vec3)
     CSetPosLocal.Position.Value = vec3
     CSetPosLocal.Parent = (self:getPlayer(player)).Character
     CSetPosLocal.Disabled = false
-    local _ = true
+    return true
+  else
+    error("", 2)
+    return false
   end
-  error("", 2)
-  return false
 end
 API.getPlayerIds = function()
   local _tbl_0 = { }

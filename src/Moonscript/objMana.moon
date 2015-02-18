@@ -6,15 +6,17 @@ class Mana
 		@player = API.getPlayer player
 		@baseMax = baseMx
 		@remaining = r
-		@experience = {}
-		@experience.level = xpl
-		@experience.amt = xpa
+		@experience = {
+			level: xpl
+			amt: xpa
+		}
 		self
 	addExperience: (amt=0) =>
 		@experience.amt += amt
 		self
 	calcXpForLvlUp: =>
-		100*1.25^(@experience.level+1)
+		x = @experience.level+1
+		1.25*math.sqrt(x^3)*(x/math.sqrt(2.5*x)+2.5)/(x/math.log(x))*x+10
 	recalculateLevel: =>
 		if @experience.amt >= @calcXpForLvlUp!
 			@experience.level += 1
@@ -32,13 +34,12 @@ class Mana
 		@remaining = math.min @remaining+amt,@absMax
 		self
 	__unm: =>
-		newMana = with Mana @player
+		with Mana @player
 			.baseMax = 0
 			.absMax = 0
 			.remaining = 0
 			.experience.level = 0
 			.experience.amt = 0
-		newMana
 	__add: (other) =>
 		if other.__class == self.__class
 			newMana = with Mana @player

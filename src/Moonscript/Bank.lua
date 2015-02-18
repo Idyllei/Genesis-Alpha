@@ -6,15 +6,16 @@ local API = require("API")
 local Bank = { }
 local _accounts = { }
 local bapi = {
+  Bank = { },
   setup = function(self)
     return setfenv(1, {
       unpack(getfenv({ })),
-      bank = Bank,
+      bank = self.Bank,
       accounts = _accounts
     })
   end
 }
-local bankAccountTemplate = {
+bapi.Bank.bankAccountTemplate = {
   Owner = "\0",
   OwnerId = 0,
   Balance = 0,
@@ -33,8 +34,8 @@ local bankAccountTemplate = {
   LockLogs = { },
   IOUList = { }
 }
-Bank.setNPCAccount = function(self)
-  _accounts["NPC"] = setmetatable(bankAccountTemplate, {
+bapi.Bank.setNPCAccount = function(self)
+  _accounts["NPC"] = setmetatable(self.bankAccountTemplate, {
     __index = bankAccountTemplate,
     __newIndex = function(self, index, value)
       if not rawget(self, index) then

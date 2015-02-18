@@ -1,4 +1,15 @@
 local CONFIG = {
+  spawnpoints = { },
+  spawnPoint = (function()
+    do
+      local _with_0 = Instance.new("SpawnPoint")
+      _with_0.Position = Vector3.new((unpack(spawnpoints[math.random(1, #spawnpoints)])))
+      _with_0.Transparency = 1
+      _with_0.Anchored = true
+      _with_0.CanCollide = false
+      return _with_0
+    end
+  end)(),
   volcano = {
     MaxNPC = 10,
     Extents = 12,

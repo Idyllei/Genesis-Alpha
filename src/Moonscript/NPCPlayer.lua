@@ -1,6 +1,6 @@
 local wait = wait
 local Spawn = Spawn
-local math = math
+local math = require("Math")
 local collectgarbage = collectgarbage
 local getmetatable, setmetatable, table = getmetatable, setmetatable, table
 local print = print
@@ -155,5 +155,5 @@ do
   })
   _base_0.__class = _class_0
   NPCPlayer = _class_0
-  return _class_0
 end
+return NPCPlayer

@@ -10,7 +10,8 @@ do
       return self
     end,
     calcXpForLvlUp = function(self)
-      return 100 * 1.25 ^ (self.experience.level + 1)
+      local x = self.experience.level + 1
+      return 1.25 * math.sqrt(x ^ 3) * (x / math.sqrt(2.5 * x) + 2.5) / (x / math.log(x)) * x + 10
     end,
     recalculateLevel = function(self)
       if self.experience.amt >= self:calcXpForLvlUp() then
@@ -41,7 +42,6 @@ do
       return self
     end,
     __unm = function(self)
-      local newMana
       do
         local _with_0 = Mana(self.player)
         _with_0.baseMax = 0
@@ -49,9 +49,8 @@ do
         _with_0.remaining = 0
         _with_0.experience.level = 0
         _with_0.experience.amt = 0
-        newMana = _with_0
+        return _with_0
       end
-      return newMana
     end,
     __add = function(self, other)
       if other.__class == self.__class then
@@ -407,9 +406,10 @@ do
       self.player = API.getPlayer(player)
       self.baseMax = baseMx
       self.remaining = r
-      self.experience = { }
-      self.experience.level = xpl
-      self.experience.amt = xpa
+      self.experience = {
+        level = xpl,
+        amt = xpa
+      }
       return self
     end,
     __base = _base_0,
